@@ -1,6 +1,6 @@
 = adstack
 
-Description goes here.
+Tool for interacting with the Google Adwords API at a decreased level of complication.
 
 == Contributing to adstack
  
