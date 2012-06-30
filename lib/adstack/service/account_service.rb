@@ -1,24 +1,26 @@
 module Adstack
   class AccountService < Service
 
+    service_name :serviced_account
+
     def item(params={})
       Account.new(params)
     end
 
-    def find_operation
-      Api.get(:serviced_account)
-    end
-
-    def response_location
-      :accounts
+    def perform_find
+      get
     end
 
     def self.find(amount=:all)
-      response = self.find_operation
+      response = self.perform_find
       response = items_from(response, *Array.wrap(self.response_location))
 
       return response.sample if amount == :sample
       response
+    end
+
+    def response_location
+      :accounts
     end
 
   end

@@ -7,8 +7,8 @@ module Adstack
       nil
     end
 
-    def find_operation
-      nil
+    def perform_find
+      get(self.selector, self.predicates)
     end
 
     def response_location
@@ -18,7 +18,7 @@ module Adstack
     class << self
 
       def find(amount=:all, params={})
-        return nil unless self.find_operation
+        return nil unless self.perform_find
         params.symbolize_all_keys!
 
         @required.each do |attribute|
@@ -27,7 +27,7 @@ module Adstack
 
         @search_params = params.slice(*self.item.filterable)
 
-        response = self.find_operation
+        response = self.perform_find
         response = items_from(response, *Array.wrap(self.response_location))
 
         return response.first if amount == :first
@@ -36,6 +36,15 @@ module Adstack
 
       def required(*symbols)
         @required = symbols
+      end
+
+      def service_name(symbol, *params)
+        super(symbol)
+        params.each do |param|
+          case param
+          when :p
+          end
+        end
       end
 
     end

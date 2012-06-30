@@ -1,7 +1,7 @@
 module Adstack
   class Report < Api
 
-    def service_init
+    def external_api
       self.adwords.report_utils(API_VERSION)
     end
 
@@ -48,7 +48,7 @@ module Adstack
       }
       definition[:selector][:date_range] = date_range if date_range
 
-      Api.execute(nil, :download_report, definition)
+      self.execute(:download_report, definition)
     end
 
   end

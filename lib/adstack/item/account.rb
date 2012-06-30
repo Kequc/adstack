@@ -11,7 +11,7 @@ module Adstack
 
     primary :customer_id
 
-    service_name :create_account, :i
+    service_name :create_account, :p
 
     def save_operation
       if self.persisted?
@@ -29,7 +29,7 @@ module Adstack
     end
 
     def perform_save
-      Api.mutate(self.service_name, self.save_operation)
+      mutate(self.service_name, self.save_operation)
     end
 
     def response_location

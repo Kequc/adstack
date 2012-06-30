@@ -3,12 +3,14 @@ module Adstack
 
     required :campaign_id
 
+    service_name :ad_group
+
     def item(params={})
       AdGroup.new(params)
     end
 
-    def find_operation
-      Api.get(:ad_group, self.selector(:name), self.predicates(status: %w{ACTIVE PAUSED}))
+    def perform_find
+      get(self.selector(:name), self.predicates(status: %w{ACTIVE PAUSED}))
     end
 
   end

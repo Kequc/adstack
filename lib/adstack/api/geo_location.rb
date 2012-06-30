@@ -1,6 +1,8 @@
 module Adstack
   class GeoLocation < Api
 
+    service_name :geo_location
+
     def item(params={})
       Address.new(params)
     end
@@ -10,10 +12,10 @@ module Adstack
       amount = addresses.is_a?(Array) ? :all : :first
 
       # Format addresses
-      addresses = Array.wrap(addresses).map { |address| Address.new(address).attributes_for_adwords }
+      addresses = Array.wrap(addresses).map { |address| self.item(address).attributes_for_adwords }
 
       # Return list of GeoLocations
-      locations = Api.get(:geo_location, { addresses: addresses }) || []
+      locations = get(addresses: addresses) || []
       locations.map! do |location|
         if location[:geo_location_type] == "InvalidGeoLocation"
           nil

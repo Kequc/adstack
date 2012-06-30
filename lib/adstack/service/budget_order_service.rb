@@ -3,12 +3,14 @@ module Adstack
 
     required :ad_group_id, :criteria_type
 
+    service_name :budget_order
+
     def item(params={})
       BudgetOrder.new(params)
     end
 
-    def find_operation
-      Api.get(:budget_order, self.selector(:ad_group_id), self.predicates)
+    def perform_find
+      get(self.selector(:ad_group_id), self.predicates)
     end
 
   end

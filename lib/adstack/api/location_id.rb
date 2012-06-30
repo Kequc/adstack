@@ -1,18 +1,20 @@
 module Adstack
-  class Location < Api
+  class LocationId < Api
+
+    service_name :location_criterion
 
     def item(params={})
       params[:location][:id]
     end
 
-    # LocationService.find(:city => 'Prague')
-    # LocationService.find(:country => 'CZ', :city => 'Prague')
-    # LocationService.find(:country => 'CZ', :region => 'Prague' :city => 'Prague')
+    # LocationId.find(:city => 'Prague')
+    # LocationId.find(:country => 'CZ', :city => 'Prague')
+    # LocationId.find(:country => 'CZ', :region => 'Prague' :city => 'Prague')
     #
     def self.find(params={})
       params.symbolize_all_keys!
 
-      # Determine by which criteria are we searching
+      # Determine which criteria are we searching for
       location_type = nil
       [:city, :region, :country].each do |symbol|
         if params[symbol].present?
@@ -25,7 +27,7 @@ module Adstack
       predicates = Toolkit.predicates([:location_name], { location_name: params[symbol] })
       selector = Toolkit.selector([:id, :location_name, :display_type])
 
-      locations = Api.get(:location_criterion, selector, predicates) || []
+      locations = get(selector, predicates) || []
       location_id = nil
       locations.each do |location|
         if location[:location][:display_type] == location_type.to_s.capitalize

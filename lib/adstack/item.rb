@@ -7,7 +7,7 @@ module AdStack
     @selectable = []
     @embedded   = {}
     @invincible = false
-    attr_reader :filterable, :selectable, :service_name, :kinds
+    attr_reader :filterable, :selectable, :kinds
 
     def initialize(params={})
       set_attributes(params)
@@ -69,10 +69,10 @@ module AdStack
       end
 
       def service_name(symbol, *params)
-        @service_name = symbol
+        super(symbol)
         params.each do |param|
           case param
-          when :i
+          when :p
             # No option to delete
             @invincible = true
           end
@@ -108,7 +108,7 @@ module AdStack
 
     def perform_delete
       return false if @invincible
-      Api.mutate_explicit(self.service_name, 'REMOVE', self.delete_operation)
+      self.mutate_explicit(self.service_name, 'REMOVE', self.delete_operation)
     end
 
     def delete
@@ -121,7 +121,7 @@ module AdStack
     end
 
     def perform_save
-      Api.mutate_explicit(self.service_name, self.s, self.save_operation)
+      self.mutate_explicit(self.service_name, self.s, self.save_operation)
     end
 
     def save
