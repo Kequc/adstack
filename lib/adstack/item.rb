@@ -131,7 +131,7 @@ module AdStack
     # Delete it
     def perform_delete
       return false if @invincible
-      self.mutate_explicit(self.service_name, 'REMOVE', self.delete_operation)
+      self.mutate_explicit('REMOVE', self.delete_operation)
     end
 
     def delete
@@ -146,7 +146,7 @@ module AdStack
 
     # Save it
     def perform_save
-      self.mutate_explicit(self.service_name, self.s, self.save_operation)
+      self.mutate_explicit(self.s, self.save_operation)
     end
 
     def save

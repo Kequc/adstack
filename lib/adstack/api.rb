@@ -5,33 +5,35 @@ module Adstack
 
     class << self
 
+      # Store service name
       def service_name(symbol)
         @service_name = symbol
       end
 
     end
 
+    # Store customer_id for MCC accounts
     def customer_id=(customer_id)
       @customer_id = customer_id
-      return @customer_id unless MCC
-      self.set_adwords_customer_id(@customer_id)
-      @customer_id
     end
 
+    # Change customer_id for MCC accounts
     def set_adwords_customer_id(customer_id)
       return false unless MCC or customer_id.present?
       self.adwords.config.set('authentication.client_customer_id', @customer_id)
     end
 
+    # Find or refresh adwords instance
     def adwords
       if @adwords and !Config.changed?
         return @adwords
       end
       @adwords = AdwordsApi::Api.new(Config.read)
-      self.set_adwords_customer_id(@customer_id)
+      self.set_adwords_customer_id(self.customer_id) unless MCC
       @adwords
     end
 
+    # Executes get operation
     def get(operation=nil, predicates=nil)
       if predicates
         operation.merge!(predicates: predicates)
@@ -39,6 +41,7 @@ module Adstack
       self.execute(:get, operation)
     end
 
+    # Executes mutate operation
     def mutate(operation)
       self.execute(:mutate, Array.wrap(operation))
     end
@@ -47,6 +50,7 @@ module Adstack
       self.mutate(Toolkit.operation(operator, operand))
     end
 
+    # Instantiates adwords service
     def external_api
       self.adwords.service(Toolkit.servify(self.service_name), API_VERSION)
     end
@@ -60,6 +64,7 @@ module Adstack
       ].include?(self.service_name))
     end
 
+    # Make the operation happen
     def execute(method=:get, operation=nil)
       result = nil
       @attempts = 0
@@ -95,7 +100,7 @@ module Adstack
 
       # Traps exceptions raised by AdWords API
       rescue AdwordsApi::Errors::ApiException => e
-        case @service_name
+        case self.service_name
         when :AdGroupAdService, :AdGroupCriterionService
           # Trap and format errors returned from AdGroupAdService or AdGroupCriterionService specifically
           e.errors.each do |error|
@@ -119,6 +124,7 @@ module Adstack
       result
     end
 
+    # Retrieve and manage authentication certificates
     def request_auth_token
       # Retrieve auth token
       auth_token = self.auth_token_storage
