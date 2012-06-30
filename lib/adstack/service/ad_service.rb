@@ -3,8 +3,6 @@ module Adstack
 
     required :ad_group_id
 
-    parents :text_ad
-
     def item(params={})
       new_from(params, :ad, :ad_type)
     end

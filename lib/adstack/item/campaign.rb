@@ -18,11 +18,9 @@ module Adstack
 
     primary :id
 
-    def save_operation
-      Api.mutate_explicit(:campaign, self.o, self.writeable_attributes)
-    end
+    service_name :campaign
 
-    def delete_operation
+    def perform_delete
       self.update_attributes(name: Toolkit.delete_name(self.name), status: 'DELETED')
     end
 

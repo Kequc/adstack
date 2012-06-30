@@ -2,11 +2,12 @@ module AdStack
   class Item < Api
 
     @attributes = []
-    @less       = []
     @writeable  = []
     @filterable = []
     @selectable = []
-    attr_reader :attributes, :less, :filterable, :selectable
+    @embedded   = {}
+    @invincible = false
+    attr_reader :filterable, :selectable, :service_name, :kinds
 
     def initialize(params={})
       set_attributes(params)
@@ -47,48 +48,99 @@ module AdStack
               when :m
                 # Match restriction
                 self.module_eval { validates_format_of name, with: value, allow_blank: true }
+              when :e
+                # Embedded field
+                @embedded[value] << name
               end
             end
           end
         end
-        if symbols.include?(:less)
-          @less << name
-        else
-          # List of all item attributes
-          @attributes << name
+        @attributes << name unless @embedded.keys.include?(name)
+      end
+
+      def create(params={})
+        result = new(params)
+        result.save
+        result
+      end
+
+      def primary(symbol)
+        @primary = symbol
+      end
+
+      def service_name(symbol, *params)
+        @service_name = symbol
+        params.each do |param|
+          case param
+          when :i
+            # No option to delete
+            @invincible = true
+          end
         end
       end
 
-      def primary(name)
-        @primary = name
+      def kinds(*symbols)
+        @kinds = symbols
       end
 
+    end
+
+    def all_attributes
+      # List of all item attributes
+      (@embedded.values.flatten + @attributes).uniq
     end
 
     def persisted?
       @primary ? self.send(@primary).present? : false
     end
 
-    def o
+    def s
       self.persisted? ? 'SET' : 'ADD'
-    end
-
-    def save_operation
-      nil
-    end
-
-    def delete_operation
-      nil
     end
 
     def response_location
       :value
     end
 
+    def delete_operation
+      self.attributes([@primary])
+    end
+
+    def perform_delete
+      return false if @invincible
+      Api.mutate_explicit(self.service_name, 'REMOVE', self.delete_operation)
+    end
+
+    def delete
+      return true unless self.persisted?
+      instance_variable_set("@#{@primary}", nil) if self.perform_delete and @primary
+    end
+
+    def save_operation
+      self.writeable_attributes
+    end
+
+    def perform_save
+      Api.mutate_explicit(self.service_name, self.s, self.save_operation)
+    end
+
     def save
       return false unless self.valid?
-      response = self.save_operation
+      response = self.perform_save
       set_attributes_from(response, *Array.wrap(self.response_location))
+    end
+
+    def set_attributes(params, list=nil)
+      params.symbolize_all_keys!
+      list ||= self.all_attributes
+      Array.wrap(list).each do |attribute|
+        value = params[attribute]
+        instance_variable_set("@#{attribute}", value) if value
+      end
+    end
+
+    def attributes=(params)
+      self.set_attributes(params, @writeable)
     end
 
     def update_attributes(params)
@@ -96,51 +148,28 @@ module AdStack
       self.save
     end
 
-    def self.create(params={})
-      result = new(params)
-      result.save
-      result
-    end
-
-    def delete
-      return true unless self.persisted?
-      self.delete_operation
-      instance_variable_set("@#{@primary}", nil) if @primary
-    end
-
-    def set_attributes(params, limit=nil)
-      params.symbolize_all_keys!
-
-      limit ||= (@attributes | @less)
-      limit.each do |attribute|
-        value = params[attribute]
-        instance_variable_set("@#{attribute}", value) if value
-      end
-    end
-
-    def set_attributes_from(response *symbols)
-      response = response.widdle(*symbols)
-
-      return false unless response
-      set_attributes(response)
+    def set_attributes_from(params *symbols)
+      params = params.widdle(*symbols)
+      return false unless params
+      set_attributes(params)
       true
     end
 
-    def attributes=(params)
-      self.set_attributes(params, @writeable)
-    end
-
-    def attributes(less=false)
-      list = less ? @less : @attributes
+    def attributes(list=nil)
       result = {}
-      list.each do |attribute|
+      list ||= self.all_attributes
+      Array.wrap(list).each do |attribute|
         result[attribute] = self.send(attribute)
       end
       result
     end
 
-    def writeable_attributes(less=false)
-      self.attributes(less).slice(*@writeable)
+    def writeable_attributes
+      result = self.attributes(@attributes.slice(*@writeable))
+      @embedded.each_pair do |key, list|
+        result.merge!(key => self.attributes(list.slice(*@writeable)))
+      end
+      result
     end
 
   end

@@ -46,8 +46,12 @@ module Adstack
       string.to_s.underscore.to_sym
     end
 
+    def adw(symbol)
+      symbol.to_s.camelize
+    end
+
     def servify(symbol)
-      ("#{symbol.to_s.camelize}Service").to_sym
+      (Toolkit.adw(symbol)+"Service").to_sym
     end
 
     def find_in(symbols, query)

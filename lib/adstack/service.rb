@@ -1,6 +1,8 @@
 module Adstack
   class Service < Api
 
+    @search_params = {}
+
     def item(params={})
       nil
     end
@@ -13,17 +15,10 @@ module Adstack
       :entries
     end
 
-    def parents
-      @parents || []
-    end
-
-    def search_params
-      @search_params || {}
-    end
-
     class << self
 
       def find(amount=:all, params={})
+        return nil unless self.find_operation
         params.symbolize_all_keys!
 
         @required.each do |attribute|
@@ -43,10 +38,6 @@ module Adstack
         @required = symbols
       end
 
-      def parents(*symbols)
-        @parents = symbols
-      end
-
     end
 
     def items_from(response, *symbols)
@@ -61,7 +52,7 @@ module Adstack
 
     def new_from(params, *symbols)
       return nil unless kind = params.widdle(*symbols)
-      return nil unless Toolkit.find_in(self.parents, kind)
+      return nil unless Toolkit.find_in(self.item.kinds, kind)
       new_from_symbol(kind, params)
     end
 

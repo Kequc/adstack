@@ -12,9 +12,7 @@ module Adstack
 
     primary :id
 
-    def save_operation
-      Api.mutate_explicit(:ad_group, self.o, self.writeable_attributes)
-    end
+    service_name :ad_group
 
     def delete_operation
       self.update_attributes(name: Toolkit.delete_name(self.name), status: 'DELETED')

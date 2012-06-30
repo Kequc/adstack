@@ -3,8 +3,6 @@ module Adstack
 
     required :ad_group_id, :criteria_type
 
-    parents :keyword
-
     def item(params={})
       new_from(params, :criterion, :criteria_type)
     end
