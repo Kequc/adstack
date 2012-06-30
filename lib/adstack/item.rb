@@ -15,6 +15,7 @@ module AdStack
 
     class << self
 
+      # Define field parameters
       def field(name, *symbols)
         if symbols.include?(:ro)
           # Read only
@@ -39,15 +40,30 @@ module AdStack
               case key
               when :l
                 # Length restriction
-                min, max = *Array.wrap(value)
-                max ||= min
-                self.module_eval { validates_length_of name, minimum: min, maximum: max, allow_blank: true }
+                if value.is_a?(Array)
+                  min, max = *value
+                  max ||= min
+                  arguments = { minimum: min, maximum: max, allow_blank: true }
+                else
+                  arguments = { minimum: value, allow_blank: true }
+                end
+                self.module_eval { validates_length_of name, arguments }
               when :w
                 # Enumerable restriction
                 self.module_eval { validates_inclusion_of name, :in => Array.wrap(value), allow_blank: true }
               when :m
                 # Match restriction
                 self.module_eval { validates_format_of name, with: value, allow_blank: true }
+              when :r
+                # Range restriction
+                if value.is_a?(Array)
+                  min, max = *value
+                  max ||= min
+                  arguments = { greater_than_or_equal_to: min, less_than_or_equal_to: max }
+                else
+                  arguments = { equal_to: value }
+                end
+                self.module_eval { validates_numericality_of name, arguments }
               when :e
                 # Embedded field
                 @embedded[value] << name
@@ -64,10 +80,12 @@ module AdStack
         result
       end
 
+      # Primary key
       def primary(symbol)
         @primary = symbol
       end
 
+      # Service name shorthand
       def service_name(symbol, *params)
         super(symbol)
         params.each do |param|
@@ -79,21 +97,24 @@ module AdStack
         end
       end
 
+      # Subclasses
       def kinds(*symbols)
         @kinds = symbols
       end
 
     end
 
+    # List of all item attributes
     def all_attributes
-      # List of all item attributes
       (@embedded.values.flatten + @attributes).uniq
     end
 
+    # Is existing record?
     def persisted?
-      @primary ? self.send(@primary).present? : false
+      @primary ? self.send(@primary) : false
     end
 
+    # Create or modify
     def s
       self.persisted? ? 'SET' : 'ADD'
     end
@@ -102,10 +123,12 @@ module AdStack
       :value
     end
 
+    # Attributes to use for delete operation
     def delete_operation
       self.attributes([@primary])
     end
 
+    # Delete it
     def perform_delete
       return false if @invincible
       self.mutate_explicit(self.service_name, 'REMOVE', self.delete_operation)
@@ -116,10 +139,12 @@ module AdStack
       instance_variable_set("@#{@primary}", nil) if self.perform_delete and @primary
     end
 
+    # Attributes to use for save operation
     def save_operation
       self.writeable_attributes
     end
 
+    # Save it
     def perform_save
       self.mutate_explicit(self.service_name, self.s, self.save_operation)
     end
@@ -130,6 +155,7 @@ module AdStack
       set_attributes_from(response, *Array.wrap(self.response_location))
     end
 
+    # Update class fields
     def set_attributes(params, list=nil)
       params.symbolize_all_keys!
       list ||= self.all_attributes
@@ -143,18 +169,21 @@ module AdStack
       self.set_attributes(params, @writeable)
     end
 
+    # Update and save
     def update_attributes(params)
       self.attributes = params
       self.save
     end
 
+    # Set attributes using adwords response
     def set_attributes_from(params *symbols)
       params = params.widdle(*symbols)
       return false unless params
-      set_attributes(params)
+      self.set_attributes(params)
       true
     end
 
+    # Return attributes
     def attributes(list=nil)
       result = {}
       list ||= self.all_attributes
@@ -164,6 +193,7 @@ module AdStack
       result
     end
 
+    # Return attributes for adwords
     def writeable_attributes
       result = self.attributes(@attributes.slice(*@writeable))
       @embedded.each_pair do |key, list|

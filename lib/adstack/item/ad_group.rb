@@ -14,7 +14,7 @@ module Adstack
 
     service_name :ad_group
 
-    def delete_operation
+    def perform_delete
       self.update_attributes(name: Toolkit.delete_name(self.name), status: 'DELETED')
     end
 
