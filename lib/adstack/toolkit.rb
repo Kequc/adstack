@@ -10,21 +10,21 @@ module Adstack
       }
     end
 
-    def predicates(attributes, params)
-      result = Array.wrap(attributes).map do |param_name|
-        if params[param_name]
+    def predicates(symbols, params)
+      result = Array.wrap(symbols).map do |symbol|
+        if params[symbol]
           # Convert to array
-          values = Array.wrap(params[param_name])
-          { field: param_name.to_s.camelize, operator: 'IN', values: values }
+          values = Array.wrap(params[symbol])
+          { field: Toolkit.adw(symbol), operator: 'IN', values: values }
         end
       end
       result.compact
     end
 
-    def selector(fields, order_by=nil, start_index=nil, number_results=nil)
-      result = { fields: fields.map { |f| f.to_s.camelize } }
+    def selector(symbols, order_by=nil, start_index=nil, number_results=nil)
+      result = { fields: symbols.map { |f| Toolkit.adw(f) } }
       if order_by
-        result.merge!(ordering: Array.wrap(order_by).map { |order| { field: order.to_s.camelize, sort_order: 'ASCENDING' } })
+        result.merge!(ordering: Array.wrap(order_by).map { |order| { field: Toolkit.adw(order), sort_order: 'ASCENDING' } })
       end
       if start_index and number_results
         result.merge!(paging: { start_index: start_index, number_results: number_results })
@@ -48,6 +48,10 @@ module Adstack
 
     def adw(symbol)
       symbol.to_s.camelize
+    end
+
+    def classify(symbol)
+      eval("Adstack::"+Toolkit.adw(symbol))
     end
 
     def servify(symbol)

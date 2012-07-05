@@ -1,16 +1,14 @@
 module Adstack
   class BudgetOrderService < Service
 
+    service_api :budget_order
+
     required :ad_group_id, :criteria_type
 
-    service_name :budget_order
+    customer_id_free
 
-    def item(params={})
-      BudgetOrder.new(params)
-    end
-
-    def perform_find
-      get(self.selector(:ad_group_id), self.predicates)
+    def selector
+      super(:ad_group_id)
     end
 
   end

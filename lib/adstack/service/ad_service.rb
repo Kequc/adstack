@@ -1,17 +1,13 @@
 module Adstack
   class AdService < Service
 
+    service_api :ad_group_ad, r: :ad
+
     required :ad_group_id
 
-    service_name :ad_group_ad
+    kinds :text_ad
 
-    def item(params={})
-      new_from(params, :ad, :ad_type)
-    end
-
-    def perform_find
-      get(self.selector(:name), self.predicates)
-    end
+    kinds_locator :ad, :ad_type
 
   end
 end

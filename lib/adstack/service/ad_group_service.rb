@@ -1,16 +1,16 @@
 module Adstack
   class AdGroupService < Service
 
+    service_api :ad_group
+
     required :campaign_id
 
-    service_name :ad_group
-
-    def item(params={})
-      AdGroup.new(params)
+    def selector
+      super(:name)
     end
 
-    def perform_find
-      get(self.selector(:name), self.predicates(status: %w{ACTIVE PAUSED}))
+    def predicates
+      super(status: %w{ENABLED PAUSED})
     end
 
   end

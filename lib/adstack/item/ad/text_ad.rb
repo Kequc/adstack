@@ -5,5 +5,7 @@ module Adstack
     field :description1,  :f, :s, e: :ad
     field :description2,  :f, :s, e: :ad
 
+    kind :ad
+
   end
 end

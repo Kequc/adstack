@@ -6,5 +6,7 @@ module Adstack
     field :targeting_status,  :ro, :s,      e: :criterion
     field :parent_locations,  :ro, :s,      e: :criterion
 
+    kind :campaign_criterion
+
   end
 end
