@@ -1,7 +1,7 @@
 module Adstack
   class LocationId < Api
 
-    service_name :location_criterion
+    service_api :location_criterion, :c
 
     def item(params={})
       params[:location][:id]

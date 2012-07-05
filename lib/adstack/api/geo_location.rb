@@ -1,7 +1,7 @@
 module Adstack
   class GeoLocation < Api
 
-    service_name :geo_location
+    service_api :geo_location
 
     def item(params={})
       Address.new(params)

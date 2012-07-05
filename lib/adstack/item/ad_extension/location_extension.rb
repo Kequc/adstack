@@ -10,5 +10,7 @@ module Adstack
     field :icon_media_id,   :s,     e: :ad_extension
     field :image_media_id,  :s,     e: :ad_extension
 
+    kind :ad_extension
+
   end
 end

@@ -16,12 +16,16 @@ module Adstack
     field :settings,          :s
     field :network_setting
 
-    primary :id
+    service_api :campaign
 
-    service_name :campaign
+    cannot_delete :set_status
 
-    def perform_delete
-      self.update_attributes(name: Toolkit.delete_name(self.name), status: 'DELETED')
+    parent :account
+
+    children :campaign_criterion, :ad_group, :ad_extension
+
+    def child_attributes
+      super(campaign_id: self.id)
     end
 
     def activate

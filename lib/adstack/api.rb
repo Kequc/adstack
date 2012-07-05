@@ -1,26 +1,60 @@
 module Adstack
   class Api
+    include ActiveModel::Validations
 
-    attr_reader :customer_id, :service_name
+    MAX_ATTEMPTS = 5
+
+    attr_accessor :customer_id
 
     class << self
 
-      # Store service name
-      def service_name(symbol)
-        @service_name = symbol
+      attr_reader :service_sym, :class_sym, :item_location, :doesnt_need_customer_id
+
+      def need_customer_id
+        Adstack::MCC and !@doesnt_need_customer_id
       end
 
-    end
+      # Store service name
+      def service_api(symbol, *params)
+        @service_sym = symbol
+        params.each do |param|
 
-    # Store customer_id for MCC accounts
-    def customer_id=(customer_id)
-      @customer_id = customer_id
-    end
+          case param
+          when Hash
+            param.each_pair do |key, value|
 
-    # Change customer_id for MCC accounts
-    def set_adwords_customer_id(customer_id)
-      return false unless MCC or customer_id.present?
-      self.adwords.config.set('authentication.client_customer_id', @customer_id)
+              case key
+              when :r
+                # Class name different from service name
+                @class_sym = value
+              when :l
+                # Unusual nesting location in response
+                @item_location = value
+              end
+
+            end
+
+          end
+        end
+      end
+
+      # Unnecessary customer_id for this setvice
+      def customer_id_free
+        @doesnt_need_customer_id = true
+      end
+
+      def class_sym
+        @class_sym ||= self.service_sym
+      end
+
+      def child_class
+        Toolkit.classify(self.class_sym)
+      end
+
+      def service_name_sym
+        Toolkit.servify(self.service_sym)
+      end
+
     end
 
     # Find or refresh adwords instance
@@ -29,7 +63,9 @@ module Adstack
         return @adwords
       end
       @adwords = AdwordsApi::Api.new(Config.read)
-      self.set_adwords_customer_id(self.customer_id) unless MCC
+      if Adstack::MCC and self.customer_id.present?
+        self.adwords.config.set('authentication.client_customer_id', self.customer_id)
+      end
       @adwords
     end
 
@@ -52,16 +88,7 @@ module Adstack
 
     # Instantiates adwords service
     def external_api
-      self.adwords.service(Toolkit.servify(self.service_name), API_VERSION)
-    end
-
-    def customer_id_required?
-      !!(MCC and [
-        :serviced_account,
-        :create_account,
-        :budget_order,
-        :location_criterion
-      ].include?(self.service_name))
+      self.adwords.service(self.class.service_name_sym, Adstack::API_VERSION)
     end
 
     # Make the operation happen
@@ -69,8 +96,8 @@ module Adstack
       result = nil
       @attempts = 0
 
-      if self.customer_id_required? and !self.customer_id.present?
-        raise "Adwords MCC #{self.service_name} request attempted without customer_id"
+      if self.class.need_customer_id and !self.customer_id.present?
+        raise "Adwords MCC #{self.class.service_name_sym} request attempted without customer_id"
       end
 
       if self.adwords.config.read('authentication.auth_token').blank?
@@ -100,7 +127,7 @@ module Adstack
 
       # Traps exceptions raised by AdWords API
       rescue AdwordsApi::Errors::ApiException => e
-        case self.service_name
+        case self.class.service_name_sym
         when :AdGroupAdService, :AdGroupCriterionService
           # Trap and format errors returned from AdGroupAdService or AdGroupCriterionService specifically
           e.errors.each do |error|
@@ -142,12 +169,32 @@ module Adstack
 
     # Override these methods if you're storing the auth tokens somewhere
     def auth_token_storage
-      nil
     end
 
     # Override these methods if you're storing the auth tokens somewhere
     def auth_token_storage=(auth_token)
-      nil
+    end
+
+    # Perform actions for errors
+    def add_error(error_string)
+      where = :base
+      self.errors.add(where, error_string)
+
+      puts error_string
+      case error_string
+      when /RateExceededError/, /InternalApiError/
+        sleep(5.seconds)
+        # Try again
+        @perform_retry = true
+      when /GOOGLE_ACCOUNT_COOKIE_INVALID/, /USER_PERMISSION_DENIED/
+        self.request_auth_token
+        # Try again
+        @perform_retry = true
+      when /CUSTOMER_NOT_FOUND/
+        # Account missing
+      end
+
+      @perform_retry = false if @attempts >= MAX_ATTEMPTS
     end
 
   end

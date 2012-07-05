@@ -10,12 +10,16 @@ module Adstack
     field :experiment_data
     field :stats
 
-    primary :id
+    service_api :ad_group
 
-    service_name :ad_group
+    cannot_delete :set_status
 
-    def perform_delete
-      self.update_attributes(name: Toolkit.delete_name(self.name), status: 'DELETED')
+    parent :campaign
+
+    children :ad_group_criterion, :budget_order, :ad
+
+    def child_attributes
+      super(ad_group_id: self.id)
     end
 
   end

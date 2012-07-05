@@ -6,5 +6,7 @@ module Adstack
     field :is_call_tracking_enabled,  :s, e: :ad_extension
     field :is_call_only, :s,              e: :ad_extension
 
+    kind :ad_extension
+
   end
 end

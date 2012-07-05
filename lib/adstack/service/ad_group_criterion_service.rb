@@ -1,16 +1,16 @@
 module Adstack
   class AdGroupCriterionService < Service
 
+    service_api :ad_group_criterion
+
     required :ad_group_id, :criteria_type
 
-    service_name :ad_group_criterion
+    kinds :keyword
 
-    def item(params={})
-      new_from(params, :criterion, :criteria_type)
-    end
+    kinds_locator :criterion, :criterion_type
 
-    def perform_find
-      get(self.selector(:ad_group_id), self.predicates)
+    def selector
+      super(:ad_group_id)
     end
 
   end

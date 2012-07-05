@@ -8,15 +8,11 @@ module Adstack
     field :type,            :f, :ro, :s,  e: :criterion
     field :criterion_type,  :ro,          e: :criterion
 
-    primary :id
+    service_api :ad_group_criterion
 
-    service_name :ad_group_criterion
+    cannot_delete :set_status
 
-    kinds :keyword
-
-    def perform_delete
-      self.update_attributes(name: Toolkit.delete_name(self.name), status: 'DELETED')
-    end
+    parent :ad_group
 
   end
 end

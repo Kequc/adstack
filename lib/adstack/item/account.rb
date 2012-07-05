@@ -9,31 +9,30 @@ module Adstack
     field :date_timezone,     :r
     field :descriptive_name,  :r, l: [1, 255]
 
-    primary :customer_id
+    service_api :create_account, r: :account, p: :customer_id, l: 0
 
-    service_name :create_account, :p
+    customer_id_free
+
+    cannot_delete
+
+    children :campaign
 
     def save_operation
-      if self.persisted?
-        Toolkit.operation('SET', super)
-      else
-        {
-          :operator => 'ADD',
-          :operand => {
-            :currency_code => @currency_code,
-            :date_time_zone => @date_time_zone
-          },
-          :descriptive_name => @descriptive_name
-        }
-      end
+      operand = super
+      descriptive_name = operand.delete(:descriptive_name)
+      {
+        :operator => self.save_operator,
+        :operand => operand,
+        :descriptive_name => descriptive_name
+      }
     end
 
     def perform_save
-      mutate(self.service_name, self.save_operation)
+      mutate(self.save_operation)
     end
 
-    def response_location
-      0
+    def self.find(amount)
+      AccountService.find(amount)
     end
 
   end

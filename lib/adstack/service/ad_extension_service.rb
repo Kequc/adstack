@@ -1,16 +1,16 @@
 module Adstack
   class AdExtensionService < Service
 
+    service_api :campaign_ad_extension, r: :ad_extension
+
     required :campaign_id
 
-    service_name :campaign_ad_extension
+    kinds :location_extension, :mobile_extension
 
-    def item(params={})
-      new_from(params, :ad_extension, :ad_extension_type)
-    end
+    kinds_locator :ad_extension, :ad_extension_type
 
-    def perform_find
-      get(self.selector(:ad_extension_id), self.predicates)
+    def selector
+      super(:ad_extension_id)
     end
 
   end

@@ -9,15 +9,11 @@ module Adstack
     field :id,                :f, :s, e: :ad_extension
     field :ad_extension_type, :ro,    e: :ad_extension
 
-    primary :id
+    service_api :campaign_ad_extension, r: :ad_extension
 
-    service_name :campaign_ad_extension
+    cannot_delete :set_status
 
-    kinds :location_extension, :mobile_extension
-
-    def perform_delete
-      self.update_attributes(name: Toolkit.delete_name(self.name), status: 'DELETED')
-    end
+    parent :campaign
 
     def activate
       self.update_attributes(status: 'ACTIVE')

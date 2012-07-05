@@ -6,5 +6,7 @@ module Adstack
     field :radius_in_units, :r, :s,       e: :criterion
     field :address,         :s,           e: :criterion
 
+    kind :campaign_criterion
+
   end
 end

@@ -7,9 +7,9 @@ module Adstack
     field :start_date_time,     :f, :r, :s
     field :end_date_time,       :f, :r, :s
 
-    primary :id
+    service_api :budget_order
 
-    service_name :budget_order
+    parent :ad_group
 
   end
 end

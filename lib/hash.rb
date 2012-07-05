@@ -1,5 +1,3 @@
-require 'hash'
-
 class Hash
   def except_blank
     keep_if { |k, v| v.present? }

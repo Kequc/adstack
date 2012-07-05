@@ -9,11 +9,9 @@ module Adstack
     field :type,            :f, :ro, :s,  e: :criterion
     field :criterion_type,  :ro,          e: :criterion
 
-    primary :id
+    service_api :campaign_criterion
 
-    service_name :campaign_criterion
-
-    kinds :platform_criterion, :location_criterion, :proximity_criterion
+    parent :campaign
 
   end
 end

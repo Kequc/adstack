@@ -2,7 +2,7 @@ module Adstack
   class Report < Api
 
     def external_api
-      self.adwords.report_utils(API_VERSION)
+      self.adwords.report_utils(Adstack::API_VERSION)
     end
 
     def self.find(params={})

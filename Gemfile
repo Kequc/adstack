@@ -5,6 +5,7 @@ gem "google-ads-common", "0.7.3"
 gem "google-adwords-api", "0.6.2"
 gem "curb"
 gem "activesupport"
+gem "activemodel"
 
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.

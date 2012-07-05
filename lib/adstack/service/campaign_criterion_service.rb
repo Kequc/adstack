@@ -1,16 +1,16 @@
 module Adstack
   class CampaignCriterionService < Service
 
+    service_api :campaign_criterion
+
     required :campaign_id
 
-    service_name :campaign_criterion
+    kinds :platform_criterion, :location_criterion, :proximity_criterion
 
-    def item(params={})
-      new_from(params, :criterion, :criterion_type)
-    end
+    kinds_locator :criterion, :criterion_type
 
-    def perform_find
-      get(self.selector(:ad_group_id), self.predicates)
+    def selector
+      super(:ad_group_id)
     end
 
   end

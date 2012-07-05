@@ -1,14 +1,14 @@
 module Adstack
   class CampaignService < Service
 
-    service_name :campaign
+    service_api :campaign
 
-    def item(params={})
-      Account.new(params)
+    def selector
+      super(:name)
     end
 
-    def perform_find
-      get(self.selector(:name), self.predicates(status: %w{ACTIVE PAUSED}))
+    def predicates
+      super(status: %w{ACTIVE PAUSED})
     end
 
   end
