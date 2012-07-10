@@ -8,11 +8,7 @@ module Adstack
 
     class << self
 
-      attr_reader :service_sym, :class_sym, :item_location, :doesnt_need_customer_id
-
-      def need_customer_id
-        Adstack::MCC and !@doesnt_need_customer_id
-      end
+      attr_reader :service_sym, :item_location, :doesnt_need_customer_id
 
       # Store service name
       def service_api(symbol, *params)
@@ -26,7 +22,7 @@ module Adstack
               case key
               when :r
                 # Class name different from service name
-                @class_sym = value
+                @item_sym = value
               when :l
                 # Unusual nesting location in response
                 @item_location = value
@@ -38,17 +34,22 @@ module Adstack
         end
       end
 
-      # Unnecessary customer_id for this setvice
+      # Name of the current item class instance
+      def item_sym
+        @item_sym || self.service_sym
+      end
+
+      def item_class
+        Toolkit.classify(self.item_sym)
+      end
+
+      def need_customer_id
+        Adstack::MCC and !@doesnt_need_customer_id
+      end
+
+      # Unnecessary customer_id for this service
       def customer_id_free
         @doesnt_need_customer_id = true
-      end
-
-      def class_sym
-        @class_sym ||= self.service_sym
-      end
-
-      def child_class
-        Toolkit.classify(self.class_sym)
       end
 
       def service_name_sym
@@ -183,7 +184,7 @@ module Adstack
       puts error_string
       case error_string
       when /RateExceededError/, /InternalApiError/
-        sleep(5.seconds)
+        sleep(5)
         # Try again
         @perform_retry = true
       when /GOOGLE_ACCOUNT_COOKIE_INVALID/, /USER_PERMISSION_DENIED/

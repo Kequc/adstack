@@ -1,5 +1,5 @@
 module Adstack
-  class Address
+  class Address < Helper
 
     ATTRIBUTES = [:street_address, :street_address2, :city, :region, :country, :postal]
     attr_accessor *ATTRIBUTES
@@ -15,21 +15,10 @@ module Adstack
       params[:postal] ||= params[:postal_code]
       params[:country] ||= params[:country_code]
 
-      ATTRIBUTES.each do |attribute|
-        value = params[attribute]
-        instance_variable_set("@#{attribute}", value) if value
-      end
+      super(ATTRIBUTES, params)
     end
 
-    def attributes
-      result = {}
-      ATTRIBUTES.each do |attribute|
-        result[attribute] = self.send(attribute)
-      end
-      result
-    end
-
-    def attributes_for_adwords
+    def writeable_attributes
       result = {
         street_address: @street_address,
         street_address2: @street_address2,

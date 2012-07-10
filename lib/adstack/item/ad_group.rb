@@ -7,7 +7,6 @@ module Adstack
     field :name,          :f, :s
     field :status,        :f, :s, w: %w{ENABLED PAUSED DELETED}
     field :bids
-    field :experiment_data
     field :stats
 
     service_api :ad_group
@@ -16,10 +15,12 @@ module Adstack
 
     parent :campaign
 
-    children :ad_group_criterion, :budget_order, :ad
-
     def child_attributes
       super(ad_group_id: self.id)
+    end
+
+    def keyword_strings
+      self.keywords.map &:to_s
     end
 
   end

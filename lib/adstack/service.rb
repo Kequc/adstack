@@ -1,17 +1,18 @@
 module Adstack
   class Service < Api
 
-    attr_reader :search_params
+    attr_accessor :attributes, :kind
 
     def initialize(params={})
       params.symbolize_all_keys!
       self.customer_id = params.delete(:customer_id)
-      @search_params = params
+      self.kind = params.delete(:kind)
+      self.attributes = params
     end
 
     class << self
 
-      attr_reader :item_kinds, :item_kinds_locator
+      def item_kinds; @item_kinds ||= []; end
 
       def find(amount=:all, params={})
         params.symbolize_all_keys!
@@ -31,30 +32,30 @@ module Adstack
         @required_search_params = symbols
       end
 
-      # Subclasses
-      def kinds(*symbols)
-        @item_kinds = symbols
-      end
-
-      def kinds_locator(*symbols)
-        @item_kinds_locator = symbols
-      end
-
       # Create sub class
-      def new_from(params, *symbols)
-        return nil unless kind = params.widdle(*symbols)
+      def new_item_from(params)
+        return nil unless kind = params.widdle(*self.item_class.kind_location)
         return nil unless Toolkit.find_in(self.item_kinds, kind)
         Toolkit.classify(kind).new(params)
       end
 
       def item(params={})
-        if self.item_kinds
-          self.new_from(params, *self.item_kinds_locator)
+        if !self.item_kinds.empty?
+          self.new_item_from(params)
         else
-          self.child_class.new(params)
+          self.item_class.new(params)
         end
       end
 
+    end
+
+    # Class used to perform lookups
+    def lookup_class
+      if self.kind
+        Toolkit.classify(self.kind)
+      else
+        self.class.item_class
+      end
     end
 
     # Find it
@@ -70,12 +71,25 @@ module Adstack
 
     # Fields to lookup and order
     def selector(symbol=nil)
-      Toolkit.selector(self.class.child_class.selectable, symbol)
+      result = Toolkit.selector(self.lookup_class.selectable_lookup, symbol)
+      puts "Selector:"
+      puts result.inspect
+      result
     end
 
     # Fields to filter by
     def predicates(params={})
-      Toolkit.predicates(self.class.child_class.filterable, params.merge(@search_params))
+      filterable = self.lookup_class.filterable
+      params.merge!(self.attributes)
+      if self.kind
+        key = self.class.item_class.kind_predicate
+        params.merge!(key => Toolkit.enu(self.kind))
+        filterable |= [key]
+      end
+      result = Toolkit.predicates(filterable, params)
+      puts "Predicates:"
+      puts result.inspect
+      result
     end
 
   end
