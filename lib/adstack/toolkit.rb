@@ -35,11 +35,17 @@ module Adstack
     # Convert number to micro units (unit * one million)
     #
     def microfy(num)
+      return nil unless num
       (num.to_f * 1e6).to_i
     end
 
-    def delete_name(name)
-      "DELETED_#{name}_#{(Time.now.to_f*1000).to_i}"
+    def largify(num)
+      return nil unless num
+      (num.to_f / 1e6)
+    end
+
+    def delete_name(str)
+      "DELETED_#{str}_#{(Time.now.to_f*1000).to_i}"
     end
 
     def sym(string)
@@ -48,6 +54,10 @@ module Adstack
 
     def adw(symbol)
       symbol.to_s.camelize
+    end
+
+    def enu(symbol)
+      symbol.to_s.upcase
     end
 
     def classify(symbol)

@@ -1,18 +1,16 @@
 module Adstack
   class AdGroupCriterion < Item
 
-    field :ad_group_id,     :f, :r, :s
-    field :criterion_use,   :f, :ro, :s
+    field :ad_group_id,             :f, :r, :s
+    field :criterion_use,           :f, :ro, :s, w: %w{BIDDABLE NEGATIVE}
 
-    field :id,              :f, :ro, :s,  e: :criterion
-    field :type,            :f, :ro, :s,  e: :criterion
-    field :criterion_type,  :ro,          e: :criterion
+    field :id,                      :f, :ro, :s,  e: :criterion
 
     service_api :ad_group_criterion
 
-    cannot_delete :set_status
-
     parent :ad_group
+
+    kind_lookup :criteria_type, :criterion, :criterion_type
 
   end
 end

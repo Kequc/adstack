@@ -2,13 +2,18 @@ module Adstack
   class Item < Api
 
     def initialize(params={})
+      params.symbolize_all_keys!
       self.customer_id = params.delete(:customer_id)
+      params = self.class.defaults.merge(params)
+      self.class.lookup.each_pair do |key, value|
+        params[key] = params.delete(value) if params.keys.include?(value)
+      end
       set_attributes(params)
     end
 
     class << self
 
-      attr_reader :delete_type, :parent_sym
+      attr_reader :delete_type, :update_type, :parent_sym, :kind_sym, :kind_predicate, :kind_location
 
       def normal;       @normal       ||= [];   end
       def writeable;    @writeable    ||= [];   end
@@ -17,25 +22,26 @@ module Adstack
       def embedded;     @embedded     ||= {};   end
       def fields;       @fields       ||= [];   end
       def primary;      @primary      ||= :id;  end
-      def children_sym; @children_sym ||= [];   end
+      def defaults;     @defaults     ||= {};   end
+      def permanent;    @permanent    ||= [];   end
+      def lookup;       @lookup       ||= {};   end
 
-      # Define field parameters
+      # List of fields for selector
+      def selectable_lookup
+        self.selectable.map do |symbol|
+          self.lookup.keys.include?(symbol) ? self.lookup[symbol] : symbol
+        end
+      end
+
+      # Define field
       def field(symbol, *params)
         self.fields << [symbol, params]
         self.initialize_field(symbol, *params)
       end
 
-      # Mimic behaviour and fields of superclass
-      def kind(symbol)
-        klass = Toolkit.classify(symbol)
-        %w[fields primary children_sym delete_type parent_sym].each do |param|
-          self.instance_variable_set("@#{param}", klass.instance_variable_get("@#{param}"))
-        end
-        self.customer_id_free if klass.doesnt_need_customer_id
-        self.service_api(klass.service_sym, r: klass.class_sym, l: klass.item_location)
-        self.fields.each do |field|
-          self.initialize_field(field[0], *field[1])
-        end
+      # Parent class object
+      def parent_class
+        Toolkit.classify(self.parent_sym)
       end
 
       # Add field
@@ -56,9 +62,25 @@ module Adstack
           when :r
             # Required
             self.module_eval { validates_presence_of symbol }
+          when :roc
+            # Required on create
+            self.module_eval { validates_presence_of symbol, unless: :persisted? }
+          when :rou
+            # Required on update
+            self.module_eval { validates_presence_of symbol, if: :persisted? }
           when :s
             # Selectable
             self.selectable << symbol
+          when :p
+            # Permanent after create
+            self.permanent << symbol
+            define_method("#{symbol}=") do |value|
+              if self.persisted?
+                raise NoMethodError
+              else
+                instance_variable_set("@#{symbol}", value)
+              end
+            end
           when Hash
             param.each_pair do |key, value|
 
@@ -93,13 +115,51 @@ module Adstack
                 # Embedded field
                 self.embedded[value] ||= []
                 self.embedded[value] << symbol
+              when :d
+                # Default value
+                self.defaults.merge!(symbol => value)
+              when :h
+                # Corresponds to helper
+                define_method("#{symbol}=") do |params={}|
+                  params = value.new(params) rescue params
+                  instance_variable_set("@#{symbol}", params)
+                end
+              when :lu
+                # Name to lookup by is different
+                self.lookup.merge!(symbol => value)
               end
 
             end
           end
         end
 
-        self.normal << symbol unless self.embedded.keys.include?(symbol)
+        self.normal << symbol unless self.embedded_params.include?(symbol)
+      end
+
+      # Mimic behaviour and fields of superclass
+      def kind(symbol, *params)
+        klass = self.superclass
+        %w[fields primary delete_type update_type parent_sym].each do |param|
+          self.instance_variable_set("@#{param}", klass.instance_variable_get("@#{param}"))
+        end
+        self.customer_id_free if klass.doesnt_need_customer_id
+        self.service_api(klass.service_sym, r: klass.item_sym, l: klass.item_location)
+        klass.fields.each do |field|
+          self.initialize_field(field[0], *field[1])
+        end
+        @kind_sym = symbol
+        self.service_class.item_kinds << symbol
+        self.parent_class.initialize_child_methods(symbol, klass.item_sym, params.include?(:s))
+      end
+
+      # Specify how to format kind lookup
+      def kind_lookup(kind_predicate, *params)
+        @kind_predicate = kind_predicate
+        @kind_location = params
+      end
+
+      def embedded_params
+        self.embedded.values.flatten
       end
 
       def create(params={})
@@ -130,7 +190,7 @@ module Adstack
       end
 
       def cannot_delete(*params)
-        @delete_type = :invincible
+        @delete_type = :disabled
         params.each do |param|
           case param
           when :set_status
@@ -139,47 +199,65 @@ module Adstack
         end
       end
 
+      def cannot_update
+        @update_type = :disabled
+      end
+
       def item_kinds
         Array.wrap(self.service_class.item_kinds)
       end
 
-      def service_class
-        Toolkit.classify("#{self.class_sym}_service")
+      def service_class(symbol=nil)
+        symbol ||= self.item_sym
+        Toolkit.classify("#{symbol}_service")
       end
 
       # Symbol representation of parent class
       def parent(symbol)
         @parent_sym = symbol
+        self.parent_class.initialize_child_methods(self.item_sym)
       end
 
-      # Symbol representation of child classes
-      def children(*symbols)
-        @children_sym = symbols
-
-        symbols.each do |symbol|
-          method_names = {
-            find: symbol.to_s.pluralize.to_sym,
-            build: "build_#{symbol}".to_sym,
-            create: "create_#{symbol}".to_sym
-          }
-
-          # Find method
-          define_method(method_names[:find]) do |params={}|
-            Toolkit.classify("#{symbol}_service").find(:all, params.merge(self.child_attributes))
-          end
-
-          # Initialize method
-          define_method(method_names[:build]) do |params={}|
-            Toolkit.classify(symbol).new(params.merge(self.child_attributes))
-          end
-
-          # Create method
-          define_method(method_names[:create]) do |params={}|
-            result = self.send(method_names[:build], params)
-            result.save
-            result
-          end
+      def initialize_child_methods(symbol, service_sym=nil, singular=false)
+        # Find method
+        find_method = symbol.to_s
+        find_method = find_method.pluralize unless singular
+        define_method(find_method) do |params={}|
+          params.merge!(self.child_attributes)
+          params.merge!(kind: symbol) if service_sym
+          self.class.service_class(service_sym || symbol).find((singular ? :first : :all), params)
         end
+
+        # Build method
+        define_method("build_#{symbol}") do |params={}|
+          Toolkit.classify(symbol).new(params.merge(self.child_attributes))
+        end
+
+        # Create method
+        define_method("create_#{symbol}") do |params={}|
+          result = self.send("build_#{symbol}", params)
+          result.save
+          result
+        end
+      end
+
+      def item_class
+        if self.kind_sym
+          Toolkit.classify(self.kind_sym)
+        else
+          super
+        end
+      end
+
+      # Returns navigation to specified field
+      def field_location(symbol)
+        result = []
+        self.item_class.embedded.each_pair do |key, value|
+          next unless value.include?(symbol)
+          result << key
+          break
+        end
+        result << symbol
       end
 
       def find(amount=:all, params={})
@@ -208,7 +286,7 @@ module Adstack
 
     # List of all item attributes
     def all_attributes
-      (self.class.embedded.values.flatten + self.class.normal).uniq
+      (self.class.embedded_params + self.class.normal).uniq
     end
 
     def get_primary
@@ -222,30 +300,47 @@ module Adstack
 
     # Attributes to use for delete operation
     def delete_operation
-      self.attributes([self.class.primary])
+      symbols = [self.class.primary]
+      parent_id_sym = "#{self.class.parent_sym}_id".to_sym
+      symbols << parent_id_sym if self.all_attributes.include?(parent_id_sym)
+      self.writeable_attributes(symbols)
     end
 
     def can_delete?
-      self.class.delete_type != :invincible
+      self.class.delete_type != :disabled
     end
 
     def set_status_delete?
       self.class.delete_type == :set_status
     end
 
+    def can_update?
+      self.class.update_type != :disabled
+    end
+
     # Delete it
     def perform_delete
       return false unless self.can_delete?
       if self.set_status_delete?
-        self.update_attributes(name: Toolkit.delete_name(self.name), status: 'DELETED')
+        params = { status: 'DELETED' }
+        params.merge!(name: Toolkit.delete_name(self.name)) if self.respond_to?(:name)
+        self.update_attributes(params)
       else
         self.mutate_explicit('REMOVE', self.delete_operation)
+        self.deprovision
       end
+      true
+    end
+
+    # Unlink object from adwords instance
+    def deprovision
+      instance_variable_set("@#{self.class.primary}", nil)
+      self.status = nil if self.respond_to?(:status=)
     end
 
     def delete
       return true unless self.persisted?
-      instance_variable_set("@#{self.class.primary}", nil) if self.perform_delete
+      self.perform_delete
     end
 
     # Are we creating a new one
@@ -260,22 +355,40 @@ module Adstack
 
     # Save it
     def perform_save
+      if self.persisted? and !self.can_update?
+        # Cannot update -> delete and replace instead
+        return false unless self.delete
+      end
       self.mutate_explicit(self.save_operator, self.save_operation)
     end
 
     def save
       return false unless self.valid?
-      response = self.perform_save
-      set_attributes_from(response, *Array.wrap(self.class.item_location || :value))
+      return false unless response = self.perform_save
+      if response = response.widdle(*Array.wrap(self.class.item_location || [:value, 0]))
+        set_attributes(response)
+        true
+      else
+        false
+      end
     end
 
     # Update class fields
     def set_attributes(params, list=nil)
       params.symbolize_all_keys!
+      # Destruct adwords formatting
+      self.class.embedded.keys.each do |key|
+        params.merge!(params.delete(key) || {})
+      end
       list ||= self.all_attributes
       Array.wrap(list).each do |param|
-        value = params[param]
-        instance_variable_set("@#{param}", value) if value
+        if value = params[param]
+          begin
+            self.send("#{param}=", value)
+          rescue
+            instance_variable_set("@#{param}", value)
+          end
+        end
       end
     end
 
@@ -289,34 +402,34 @@ module Adstack
       self.save
     end
 
-    # Set attributes using adwords response
-    def set_attributes_from(params, *symbols)
-      params = params.widdle(*symbols)
-      return false unless params
-      self.class.embedded.each_pair do |key, list|
-        params.merge!(params.delete(key))
-      end
-      self.set_attributes(params)
-      true
-    end
-
     # Return attributes
-    def attributes(list=nil)
+    def attributes(list=nil, embedded=:attributes)
       result = {}
       list ||= self.all_attributes
       Array.wrap(list).each do |param|
         result[param] = self.send(param)
+        if result[param].respond_to?(embedded)
+          result[param] = result[param].send(embedded)
+        end
       end
       result
     end
 
+    # Helper method for writeable_attributes
+    def attributes_for_writeable_attributes(list)
+      symbols = list & (self.class.writeable | [self.class.primary])
+      symbols -= self.class.permanent if self.persisted?
+      self.attributes(symbols, :writeable_attributes)
+    end
+
     # Return attributes for adwords
-    def writeable_attributes
-      result = self.attributes(self.class.normal & self.class.writeable)
-      self.class.embedded.each_pair do |key, list|
-        result.merge!(key => self.attributes(list & self.class.writeable))
+    def writeable_attributes(list=nil)
+      list ||= self.all_attributes
+      result = self.attributes_for_writeable_attributes(self.class.normal & list)
+      self.class.embedded.each_pair do |key, value|
+        result.merge!(key => self.attributes_for_writeable_attributes(value & list))
       end
-      result
+      result.except_blank
     end
 
   end

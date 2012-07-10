@@ -5,12 +5,12 @@ module Adstack
 
     required :campaign_id
 
-    kinds :location_extension, :mobile_extension
-
-    kinds_locator :ad_extension, :ad_extension_type
-
     def selector
       super(:ad_extension_id)
+    end
+
+    def predicates
+      super(status: %w{ACTIVE})
     end
 
   end

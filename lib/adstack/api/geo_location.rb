@@ -12,7 +12,7 @@ module Adstack
       amount = addresses.is_a?(Array) ? :all : :first
 
       # Format addresses
-      addresses = Array.wrap(addresses).map { |address| self.item(address).attributes_for_adwords }
+      addresses = Array.wrap(addresses).map { |address| self.item(address).writeable_attributes }
 
       # Return list of GeoLocations
       locations = get(addresses: addresses) || []

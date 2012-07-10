@@ -3,11 +3,7 @@ module Adstack
 
     service_api :ad_group_criterion
 
-    required :ad_group_id, :criteria_type
-
-    kinds :keyword
-
-    kinds_locator :criterion, :criterion_type
+    required :ad_group_id
 
     def selector
       super(:ad_group_id)

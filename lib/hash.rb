@@ -1,6 +1,16 @@
 class Hash
+
+  def except_blank!
+    # Remove empty values
+    values.each{|h| h.except_blank! if h.is_a?(Hash)}
+    # Remove empty inside array
+    values.select{|v| v.is_a?(Array)}.flatten.each{|h| h.except_blank! if h.is_a?(Hash)}
+    delete_if { |k, v| v.blank? }
+    self
+  end
+
   def except_blank
-    keep_if { |k, v| v.present? }
+    self.dup.except_blank!
   end
 
   def widdle(*symbols)

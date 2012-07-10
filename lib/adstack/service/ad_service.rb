@@ -5,9 +5,5 @@ module Adstack
 
     required :ad_group_id
 
-    kinds :text_ad
-
-    kinds_locator :ad, :ad_type
-
   end
 end
