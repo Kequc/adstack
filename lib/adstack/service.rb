@@ -24,6 +24,7 @@ module Adstack
         response = new(params).perform_find
 
         return response.first if amount == :first
+        return response.sample if amount == :sample
         response
       end
 

@@ -8,6 +8,14 @@ module Adstack
       self.class.lookup.each_pair do |key, value|
         params[key] = params.delete(value) if params.keys.include?(value)
       end
+      self.class.datetimes.each_pair do |key, value|
+        case value
+        when :timezone
+          params[key] = Time.parse(params[key])
+        when :date
+          params[key] = Date.parse(params[key])
+        end
+      end
       set_attributes(params)
     end
 
@@ -26,6 +34,7 @@ module Adstack
       def defaults;     @defaults     ||= {};   end
       def permanent;    @permanent    ||= [];   end
       def lookup;       @lookup       ||= {};   end
+      def datetimes;    @datetimes    ||= {};   end
 
       # List of fields for selector
       def selectable_lookup
@@ -129,6 +138,9 @@ module Adstack
               when :lu
                 # Name to lookup by is different
                 self.lookup.merge!(symbol => value)
+              when :t
+                # Format the time/date
+                self.datetimes.merge!(symbol => value)
               end
 
             end
@@ -427,13 +439,22 @@ module Adstack
     alias_method :set, :update_attributes
 
     # Return attributes
-    def attributes(symbols=nil, method_name=:attributes)
+    def attributes(symbols=nil, for_output=false)
       result = {}
       symbols ||= self.all_attributes
+      method_name = for_output ? :writeable_attributes : :attributes
       Array.wrap(symbols).each do |symbol|
         value = self.send(symbol)
         if !value.is_a?(String) and value.respond_to?(method_name)
           value = value.send(method_name)
+        end
+        if (value.is_a?(Date) or value.is_a?(Time)) and for_output and convert = self.class.datetimes[symbol]
+          case convert
+          when :timezone
+            value = value.strftime('%Y%m%d %H%M%S America/Los_Angeles')
+          when :date
+            value = value.strftime('%Y%m%d')
+          end
         end
         result[symbol] = value
       end
@@ -444,7 +465,7 @@ module Adstack
     def attributes_for_writeable_attributes(symbols)
       symbols = symbols & (self.class.writeable | [self.class.primary_key])
       symbols -= self.class.permanent if self.persisted?
-      self.attributes(symbols, :writeable_attributes)
+      self.attributes(symbols, true)
     end
 
     # Return attributes for adwords

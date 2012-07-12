@@ -5,8 +5,8 @@ module Adstack
     field :name,              :f, :s,           l: 1
     field :status,            :f, :s,           w: %w{ACTIVE DELETED PAUSED}
     field :serving_status,    :f, :ro, :s
-    field :start_date,        :f, :s
-    field :end_date,          :f, :s
+    field :start_date,        :f, :s,           t: :date
+    field :end_date,          :f, :s,           t: :date
     field :budget,                              h: Budget
     field :bidding_strategy,  :roc, :p,         d: { xsi_type: 'BudgetOptimizer' }
     field :conversion_optimizer_eligibility, :ro
