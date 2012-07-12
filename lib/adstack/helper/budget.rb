@@ -12,7 +12,9 @@ module Adstack
     def writeable_attributes
       result = self.attributes
 
-      unless result[:amount].is_a?(Hash)
+      if result[:amount].is_a?(Hash)
+        result[:amount].slice!(:micro_amount)
+      else
         result[:amount] = { micro_amount: Toolkit.microfy(@amount) }
       end
 

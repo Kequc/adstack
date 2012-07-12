@@ -6,7 +6,7 @@ module Adstack
     field :radius_in_units,       :roc, :s, e: :criterion
     field :address,               :s,       e: :criterion, h: Address
 
-    kind :proximity, :s
+    kind :proximity
 
     def writeable_attributes(list=nil)
       result = super(list)
