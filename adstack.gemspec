@@ -66,7 +66,6 @@ Gem::Specification.new do |s|
     "lib/hash.rb",
     "lib/httpi_monkeypatch.rb",
     "test/helper.rb",
-    "test/my_test_file.rb",
     "test/test_adstack.rb"
   ]
   s.homepage = "http://github.com/kequc/adstack"
