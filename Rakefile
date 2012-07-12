@@ -17,8 +17,8 @@ Jeweler::Tasks.new do |gem|
   gem.name = "adstack"
   gem.homepage = "http://github.com/kequc/adstack"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{Tool for interacting with the Google Adwords API at a decreased level of complication.}
+  gem.description = %Q{Attempts to lower the amount of complex API work one would have to do when interacting with Google's Adwords API.}
   gem.email = "nathan.lundeberry@gmail.com"
   gem.authors = ["Nathan Lunde-Berry"]
   # dependencies defined in Gemfile
