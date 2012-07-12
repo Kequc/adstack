@@ -59,11 +59,15 @@ module Adstack
     end
 
     # Find it
-    def perform_find
+    def perform_get
       response = get(self.selector, self.predicates)
-      # Create items from adwords response
       response.symbolize_all_keys!
       response = response.widdle(*Array.wrap(self.class.item_location || :entries)) || []
+    end
+
+    # Turn response into useful items
+    def perform_find
+      response = self.perform_get
       response.map! { |a| self.class.item(a) }
       response.each { |a| a.customer_id ||= self.customer_id }
       response

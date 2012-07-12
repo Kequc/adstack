@@ -3,7 +3,7 @@ module Adstack
 
     service_api :budget_order
 
-    required :ad_group_id
+    required :billing_account_id
 
     customer_id_free
 

@@ -8,7 +8,7 @@ module Adstack
     field :start_date,        :f, :s
     field :end_date,          :f, :s
     field :budget,                              h: Budget
-    field :bidding_strategy,  :roc, :p,         d: { xsi_type: 'ManualCPC' }
+    field :bidding_strategy,  :roc, :p,         d: { xsi_type: 'BudgetOptimizer' }
     field :conversion_optimizer_eligibility, :ro
     field :campaign_stats,    :ro
     field :ad_serving_optimization_status,  :s, w: %w{OPTIMIZE ROTATE UNAVAILABLE}

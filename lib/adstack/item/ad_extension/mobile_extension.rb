@@ -5,7 +5,7 @@ module Adstack
     field :country_code,          :r, :s, e: :ad_extension, l: [2, 2]
     field :is_call_only,              :s, e: :ad_extension, d: false
 
-    kind :mobile_extension, :s
+    kind :mobile_extension
 
     def delete_operation
       result = super

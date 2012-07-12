@@ -9,7 +9,7 @@ module Adstack
 
     service_api :budget_order
 
-    parent :ad_group
+    # parent :ad_group
 
   end
 end

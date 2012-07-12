@@ -7,7 +7,7 @@ module Adstack
     field :company_name,      :s,       e: :ad_extension, l: [1, 80]
     field :phone_number,      :s,       e: :ad_extension
 
-    kind :location_extension, :s
+    kind :location_extension
 
     def writeable_attributes(list=nil)
       result = super(list)

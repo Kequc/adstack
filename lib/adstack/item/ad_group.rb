@@ -6,8 +6,7 @@ module Adstack
     field :campaign_name, :f, :ro, :s
     field :name,          :f, :s
     field :status,        :f, :s, w: %w{ENABLED PAUSED DELETED}
-    field :bids
-    field :stats
+    field :stats,         :ro
 
     service_api :ad_group
 
