@@ -3,7 +3,7 @@ require 'active_model'
 require 'yaml'
 require 'erb'
 
-require 'hash.rb'
+require 'hash_patches'
 
 require 'adstack/toolkit'
 require 'adstack/config'

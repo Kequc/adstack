@@ -63,8 +63,7 @@ Gem::Specification.new do |s|
     "lib/adstack/service/campaign_service.rb",
     "lib/adstack/service/customer_service.rb",
     "lib/adstack/toolkit.rb",
-    "lib/hash.rb",
-    "lib/httpi_monkeypatch.rb",
+    "lib/hash_patches.rb",
     "test/helper.rb",
     "test/test_adstack.rb"
   ]
