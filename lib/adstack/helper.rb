@@ -1,30 +1,40 @@
 module Adstack
   class Helper
 
-    attr_accessor :all_attributes
-
     def initialize(symbols, params={})
       params.symbolize_all_keys!
-      self.all_attributes = symbols
+      @all_attributes = symbols
       self.set_attributes(params)
     end
 
     def set_attributes(params={})
-      self.all_attributes.each do |symbol|
+      @all_attributes.each do |symbol|
         value = params[symbol]
-        instance_variable_set("@#{symbol}", value) if value
+        begin
+          self.send("#{symbol}=", value)
+        rescue
+          instance_variable_set("@#{symbol}", value)
+        end
       end
     end
 
-    def attributes
+    def attributes(for_output=false)
       result = {}
-      self.all_attributes.each do |symbol|
-        result[symbol] = self.send(symbol)
+      method_name = for_output ? :writeable_attributes : :attributes
+      @all_attributes.each do |symbol|
+        next unless self.respond_to?(symbol)
+        value = self.send(symbol)
+        if !value.is_a?(String) and value.respond_to?(method_name)
+          value = value.send(method_name)
+        end
+        result[symbol] = value
       end
       result
     end
 
-    alias_method :writeable_attributes, :attributes
+    def writeable_attributes
+      self.attributes(true)
+    end
 
   end
 end

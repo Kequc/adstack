@@ -68,6 +68,14 @@ module Adstack
       (Toolkit.adw(symbol)+"Service").to_sym
     end
 
+    def string_timezone(time)
+      time.strftime('%Y%m%d %H%M%S America/Los_Angeles') rescue nil
+    end
+
+    def string_date(date)
+      date.strftime('%Y%m%d') rescue nil
+    end
+
     def find_in(symbols, query)
       Array.wrap(symbols).include?(Toolkit.sym(query))
     end

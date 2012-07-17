@@ -9,16 +9,8 @@ module Adstack
       super(ATTRIBUTES, { period: 'DAILY', delivery_method: 'STANDARD' }.merge(params))
     end
 
-    def writeable_attributes
-      result = self.attributes
-
-      if result[:amount].is_a?(Hash)
-        result[:amount].slice!(:micro_amount)
-      else
-        result[:amount] = { micro_amount: Toolkit.microfy(@amount) }
-      end
-
-      result
+    def amount=(params={})
+      @amount = Money.new(params)
     end
 
   end

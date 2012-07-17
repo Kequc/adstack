@@ -44,7 +44,7 @@ module Adstack
         if !self.item_kinds.empty?
           self.new_item_from(params)
         else
-          self.item_class.new(params)
+          super(params)
         end
       end
 

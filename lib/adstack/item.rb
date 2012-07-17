@@ -260,7 +260,7 @@ module Adstack
         # Find method
         define_method(find_method) do |params={}|
           params.merge!(self.child_attributes)
-          params.merge!(kind: symbol) if service_sym
+          params.merge!(kind: symbol) if service_sym != symbol
           service_class.find((singular ? :first : :all), params)
         end
 
@@ -451,9 +451,9 @@ module Adstack
         if (value.is_a?(Date) or value.is_a?(Time)) and for_output and convert = self.class.datetimes[symbol]
           case convert
           when :timezone
-            value = value.strftime('%Y%m%d %H%M%S America/Los_Angeles')
+            value = Toolkit.string_timezone(value)
           when :date
-            value = value.strftime('%Y%m%d')
+            value = Toolkit.string_date(value)
           end
         end
         result[symbol] = value

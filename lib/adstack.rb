@@ -10,13 +10,15 @@ require 'adstack/config'
 
 require 'adstack/helper'
 require 'adstack/helper/address'
+require 'adstack/helper/money'
 require 'adstack/helper/budget'
 require 'adstack/helper/geo_point'
+require 'adstack/helper/geo_location'
 
 require 'adstack/api'
-require 'adstack/api/geo_location'
-require 'adstack/api/location_id'
-require 'adstack/api/report'
+require 'adstack/api/geo_location_service'
+require 'adstack/api/location_id_service'
+require 'adstack/api/report_service'
 
 require 'adstack/service'
 require 'adstack/service/account_service'

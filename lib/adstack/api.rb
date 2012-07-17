@@ -56,6 +56,10 @@ module Adstack
         Toolkit.servify(self.service_sym)
       end
 
+      def item(params={})
+        self.item_class.new(params)
+      end
+
     end
 
     # Find or refresh adwords instance
