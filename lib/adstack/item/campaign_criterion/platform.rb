@@ -1,7 +1,8 @@
 module Adstack
   class Platform < CampaignCriterion
 
-    field :platform_name, :ro, :s, e: :criterion
+    field :id,            :f, :r, :p, :s, e: :criterion
+    field :platform_name, :ro, :s,        e: :criterion
 
     kind :platform
 
@@ -16,6 +17,7 @@ module Adstack
 
     def writeable_attributes(list=nil)
       result = super(list)
+      result[:criterion] ||= {}
       result[:criterion].merge!(xsi_type: 'Platform')
       result
     end

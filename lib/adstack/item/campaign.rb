@@ -26,6 +26,11 @@ module Adstack
       super(campaign_id: self.id)
     end
 
+    def bidding_strategy=(bidding_strategy)
+      bidding_strategy = { xsi_type: bidding_strategy } unless bidding_strategy.is_a?(Hash)
+      @bidding_strategy = bidding_strategy
+    end
+
     def activate
       self.update_attributes(status: 'ACTIVE')
     end
