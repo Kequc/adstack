@@ -9,6 +9,7 @@ module Adstack
         params[key] = params.delete(value) if params.keys.include?(value)
       end
       self.class.datetimes.each_pair do |key, value|
+        next unless params[key].present?
         case value
         when :timezone
           params[key] = Time.parse(params[key])
