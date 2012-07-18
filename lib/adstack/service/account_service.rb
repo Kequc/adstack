@@ -7,7 +7,7 @@ module Adstack
 
     def self.find(amount=:all, params={})
       result = super(:all, params)
-      customer_ids = Array.wrap(params[:customer_ids])
+      customer_ids = Array.wrap(params[:customer_ids] || params[:customer_id])
       unless customer_ids.empty?
         result = result.select {|a| customer_ids.include?(a.customer_id)}
       end

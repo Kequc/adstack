@@ -68,7 +68,7 @@ module Adstack
 
     # Turn response into useful items
     def perform_find
-      response = self.perform_get
+      response = self.perform_get.uniq
       response.map! { |a| self.class.item(a) }
       response.each { |a| a.customer_id ||= self.customer_id }
       response

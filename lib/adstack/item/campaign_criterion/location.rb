@@ -1,6 +1,8 @@
 module Adstack
   class Location < CampaignCriterion
 
+    attr_writer :id
+
     field :location_name,     :f, :ro, :s,    e: :criterion
     field :display_type,          :ro, :s,    e: :criterion
     field :targeting_status,      :ro, :s,    e: :criterion
@@ -8,9 +10,6 @@ module Adstack
 
     kind :location
 
-    def id=(id)
-      set_attributes(id: id)
-    end
     validates_presence_of :id
 
   end

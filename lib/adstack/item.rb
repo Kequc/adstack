@@ -10,8 +10,6 @@ module Adstack
 
     def initialize(params={})
       params.symbolize_all_keys!
-      self.customer_id = params.delete(:customer_id)
-      self.operator = params.delete(:operator)
       params = self.class.defaults.merge(params)
       self.class.lookup.each_pair do |key, value|
         params[key] = params.delete(value) if params.keys.include?(value)
@@ -56,20 +54,6 @@ module Adstack
       def field(symbol, *params)
         self.fields << [symbol, params]
         self.initialize_field(symbol, *params)
-      end
-
-      # Supports batch operations
-      def can_batch
-        self.parent_class.define_method("#{self.kind_sym.to_s.pluralize}=") do |operations=[]|
-          # Convert operations into objects
-          operations = Array.wrap(arr).map {|a| a.is_a?(self) ? a : new(a)}
-          # Remove invalid operations
-          operations.keep_if {|a| a.valid?}
-          # Get operations for each object
-          operations = arr.map {|a| Toolkit.operation(a.operator, a.save_operation)}
-          # Perform batch operation
-          self.mutate(operations)
-        end
       end
 
       # Parent class object
@@ -176,7 +160,7 @@ module Adstack
       # Mimic behaviour and fields of superclass
       def kind(symbol, *params)
         klass = self.superclass
-        %w[fields primary_key delete_type update_type parent_sym].each do |param|
+        %w[fields primary_key delete_type update_type parent_sym kind_location].each do |param|
           self.instance_variable_set("@#{param}", klass.instance_variable_get("@#{param}"))
         end
         self.customer_id_free if klass.doesnt_need_customer_id
@@ -249,6 +233,39 @@ module Adstack
         Toolkit.classify("#{symbol}_service")
       end
 
+      # Support batch operations
+      def can_batch
+        self.parent_class.initialize_batch_methods(self.kind_sym)
+      end
+
+      def initialize_batch_methods(symbol)
+        kind_class = Toolkit.classify(symbol)
+        method = symbol.to_s.pluralize
+
+        # Build method
+        define_method("build_#{method}") do |operations=[]|
+          Array.wrap(operations).map do |a|
+            unless a.is_a?(kind_class)
+              a = kind_class.new(a)
+              a.set_attributes(self.child_params)
+            end
+            a
+          end
+        end
+
+        # Create method
+        define_method("create_#{method}") do |operations=[]|
+          # Convert operations into objects
+          operations = self.send("build_#{method}", operations)
+          # Remove invalid operations
+          operations.keep_if {|a| a.valid_for_adwords?}
+          # Get operations for each object
+          operations.map! {|a| Toolkit.operation(a.operator, a.save_operation)}
+          # Perform batch operation
+          kind_class.new(self.child_params).mutate(operations)
+        end
+      end
+
       # Symbol representation of parent class
       def parent(symbol)
         @parent_sym = symbol
@@ -265,7 +282,7 @@ module Adstack
         # all_method = service_sym.to_s.pluralize
         # unless self.method_defined?(all_method)
         #   define_method(all_method) do |params={}|
-        #     params.merge!(self.child_attributes)
+        #     params.merge!(self.child_params)
         #     response = service_class.new(params).perform_get
         #     to_lookup = []
         #     response.each do |item|
@@ -282,14 +299,14 @@ module Adstack
 
         # Find method
         define_method(find_method) do |params={}|
-          params.merge!(self.child_attributes)
+          params.merge!(self.child_params)
           params.merge!(kind: symbol) if service_sym != symbol
           service_class.find((singular ? :first : :all), params)
         end
 
         # Build method
         define_method("build_#{symbol}") do |params={}|
-          Toolkit.classify(symbol).new(params.merge(self.child_attributes))
+          Toolkit.classify(symbol).new(params.merge(self.child_params))
         end
 
         # Create method
@@ -325,11 +342,11 @@ module Adstack
 
     end
 
-    def valid?
+    def valid_for_adwords?
       if self.operator == 'REMOVE'
         self.get_primary.present?
       else
-        super
+        self.valid?
       end
     end
 
@@ -347,8 +364,8 @@ module Adstack
       end
     end
 
-    # List attributes for looking up and creating child instances
-    def child_attributes(params={})
+    # List params for looking up and creating child instances
+    def child_params(params={})
       params.merge(customer_id: self.customer_id)
     end
 
@@ -442,7 +459,7 @@ module Adstack
       self.class.embedded.keys.each do |key|
         params.merge!(params.delete(key) || {})
       end
-      list ||= self.all_attributes
+      list ||= (self.all_attributes | [:customer_id, :operator])
       params.slice(*list).each_pair do |key, value|
         begin
           self.send("#{key}=", value)
@@ -500,7 +517,7 @@ module Adstack
       self.class.embedded.each_pair do |key, value|
         result.merge!(key => self.attributes_for_writeable_attributes(value & symbols))
         if self.class.kind_location and key == self.class.kind_location.first
-          result[key][:xsi_type] = Toolkit.adw(self.kind_sym)
+          result[key][:xsi_type] = Toolkit.adw(self.class.kind_sym)
         end
       end
       result.except_blank

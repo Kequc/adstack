@@ -14,7 +14,7 @@ module Adstack
 
     parent :campaign
 
-    def child_attributes
+    def child_params
       super(ad_group_id: self.id)
     end
 

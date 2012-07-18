@@ -1,15 +1,14 @@
 module Adstack
   class Platform < CampaignCriterion
 
+    attr_writer :id
+
     field :platform_name, :ro, :s, e: :criterion
 
     kind :platform
 
     can_batch
 
-    def id=(id)
-      set_attributes(id: id)
-    end
     validates_presence_of :id
 
     def persisted?

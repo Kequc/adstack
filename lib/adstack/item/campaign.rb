@@ -22,7 +22,7 @@ module Adstack
 
     parent :account
 
-    def child_attributes
+    def child_params
       super(campaign_id: self.id)
     end
 
