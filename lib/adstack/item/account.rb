@@ -6,10 +6,10 @@ module Adstack
     field :company_name,      :ro
     field :can_manage_clients, :ro
     field :currency_code,     :roc, :p, l: [3, 3]
-    field :date_timezone,     :roc, :p
+    field :date_time_zone,     :roc, :p
     field :descriptive_name,  :r, l: [1, 255]
 
-    service_api :create_account, r: :account, p: :customer_id, l: 0
+    service_api :create_account, r: :account, p: :customer_id
 
     customer_id_free
 
@@ -26,7 +26,7 @@ module Adstack
     end
 
     def perform_save
-      mutate(self.save_operation)
+      {value: mutate(self.save_operation)}
     end
 
   end
