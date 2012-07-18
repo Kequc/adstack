@@ -1,9 +1,17 @@
 module Adstack
   class Item < Api
 
+    attr_writer :operator
+
+    # Are we creating a new one
+    def operator
+      @operator || (self.persisted? ? 'SET' : 'ADD')
+    end
+
     def initialize(params={})
       params.symbolize_all_keys!
       self.customer_id = params.delete(:customer_id)
+      self.operator = params.delete(:operator)
       params = self.class.defaults.merge(params)
       self.class.lookup.each_pair do |key, value|
         params[key] = params.delete(value) if params.keys.include?(value)
@@ -48,6 +56,20 @@ module Adstack
       def field(symbol, *params)
         self.fields << [symbol, params]
         self.initialize_field(symbol, *params)
+      end
+
+      # Supports batch operations
+      def can_batch
+        self.parent_class.define_method("#{self.kind_sym.to_s.pluralize}=") do |operations=[]|
+          # Convert operations into objects
+          operations = Array.wrap(arr).map {|a| a.is_a?(self) ? a : new(a)}
+          # Remove invalid operations
+          operations.keep_if {|a| a.valid?}
+          # Get operations for each object
+          operations = arr.map {|a| Toolkit.operation(a.operator, a.save_operation)}
+          # Perform batch operation
+          self.mutate(operations)
+        end
       end
 
       # Parent class object
@@ -303,6 +325,14 @@ module Adstack
 
     end
 
+    def valid?
+      if self.operator == 'REMOVE'
+        self.get_primary.present?
+      else
+        super
+      end
+    end
+
     # Get fresh information from adwords
     def reload
       return false unless self.persisted?
@@ -380,11 +410,6 @@ module Adstack
       self.perform_delete
     end
 
-    # Are we creating a new one
-    def save_operator
-      self.persisted? ? 'SET' : 'ADD'
-    end
-
     # Attributes to use for save operation
     def save_operation
       self.writeable_attributes
@@ -396,7 +421,7 @@ module Adstack
         # Cannot update -> delete and replace instead
         return false unless self.delete
       end
-      self.mutate_explicit(self.save_operator, self.save_operation)
+      self.mutate_explicit(self.operator, self.save_operation)
     end
 
     def save
@@ -436,7 +461,6 @@ module Adstack
       self.attributes = params
       self.save
     end
-
     alias_method :set, :update_attributes
 
     # Return attributes
@@ -475,6 +499,9 @@ module Adstack
       result = self.attributes_for_writeable_attributes(self.class.normal & symbols)
       self.class.embedded.each_pair do |key, value|
         result.merge!(key => self.attributes_for_writeable_attributes(value & symbols))
+        if self.class.kind_location and key == self.class.kind_location.first
+          result[key][:xsi_type] = Toolkit.adw(self.kind_sym)
+        end
       end
       result.except_blank
     end

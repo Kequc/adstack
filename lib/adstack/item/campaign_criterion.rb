@@ -4,6 +4,8 @@ module Adstack
     field :campaign_id,     :f, :r, :s
     field :is_negative,     :f, :ro, :s
 
+    field :id,              :f, :ro, :s, e: :criterion
+
     service_api :campaign_criterion
 
     parent :campaign

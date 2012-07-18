@@ -1,7 +1,6 @@
 module Adstack
   class Location < CampaignCriterion
 
-    field :id,                :f, :r, :p, :s, e: :criterion
     field :location_name,     :f, :ro, :s,    e: :criterion
     field :display_type,          :ro, :s,    e: :criterion
     field :targeting_status,      :ro, :s,    e: :criterion
@@ -9,12 +8,10 @@ module Adstack
 
     kind :location
 
-    def writeable_attributes(list=nil)
-      result = super(list)
-      result[:criterion] ||= {}
-      result[:criterion].merge!(xsi_type: 'Location')
-      result
+    def id=(id)
+      set_attributes(id: id)
     end
+    validates_presence_of :id
 
   end
 end

@@ -1,10 +1,16 @@
 module Adstack
   class Platform < CampaignCriterion
 
-    field :id,            :f, :r, :p, :s, e: :criterion
-    field :platform_name, :ro, :s,        e: :criterion
+    field :platform_name, :ro, :s, e: :criterion
 
     kind :platform
+
+    can_batch
+
+    def id=(id)
+      set_attributes(id: id)
+    end
+    validates_presence_of :id
 
     def persisted?
       !!self.platform_name.present?
@@ -15,11 +21,8 @@ module Adstack
       super(symbols)
     end
 
-    def writeable_attributes(list=nil)
-      result = super(list)
-      result[:criterion] ||= {}
-      result[:criterion].merge!(xsi_type: 'Platform')
-      result
+    def delete_operation
+      self.writeable_attributes(self.class.required | [self.class.primary_key])
     end
 
   end

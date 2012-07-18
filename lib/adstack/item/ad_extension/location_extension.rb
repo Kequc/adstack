@@ -11,7 +11,7 @@ module Adstack
 
     def writeable_attributes(list=nil)
       result = super(list)
-      result[:ad_extension].merge!(source: 'ADWORDS_FRONTEND', xsi_type: 'LocationExtension')
+      result[:ad_extension].merge!(source: 'ADWORDS_FRONTEND')
       result
     end
 

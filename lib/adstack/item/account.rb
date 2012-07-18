@@ -19,7 +19,7 @@ module Adstack
       operand = super
       descriptive_name = operand.delete(:descriptive_name)
       {
-        :operator => self.save_operator,
+        :operator => self.operator,
         :operand => operand,
         :descriptive_name => descriptive_name
       }

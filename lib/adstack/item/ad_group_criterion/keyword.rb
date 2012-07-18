@@ -10,6 +10,8 @@ module Adstack
 
     cannot_update
 
+    can_batch
+
     def writeable; @writeable ||= [:xsi_type]; end
 
     def initialize(params={})
@@ -72,9 +74,7 @@ module Adstack
     end
 
     def writeable_attributes(list=nil)
-      result = super(list).merge(xsi_type: self.xsi_type)
-      result[:criterion].merge!(xsi_type: 'Keyword')
-      result
+      super(list).merge(xsi_type: self.xsi_type)
     end
 
   end

@@ -13,11 +13,5 @@ module Adstack
       result
     end
 
-    def writeable_attributes(list=nil)
-      result = super(list)
-      result[:ad_extension].merge!(xsi_type: 'MobileExtension')
-      result
-    end
-
   end
 end
