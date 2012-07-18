@@ -34,7 +34,7 @@ module Adstack
       locations = lis.perform_find || []
       locations.each do |location|
         if location[:location][:display_type] == Toolkit.adw(lis.location_type)
-          return self.item(location)
+          return lis.item(location)
         end
       end
       nil

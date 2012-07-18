@@ -8,15 +8,20 @@ module Adstack
       self.adwords.report_utils(Adstack::API_VERSION)
     end
 
+    def all_attributes
+      ATTRIBUTES | [:customer_id]
+    end
+
     def initialize(params={})
       params.symbolize_all_keys!
 
-      ATTRIBUTES.each do |symbol|
+      self.all_attributes.each do |symbol|
         self.send("#{symbol}=", params[symbol]) if params[symbol].present?
       end
 
       self.download_format ||= :xml
-      self.report_type ||= "A Report"
+      self.report_name ||= "A Report"
+      self.report_type ||= :ad_performance_report
       self.date_range_type ||= :last_7_days
       self.include_zero_impressions ||= false
     end
@@ -41,7 +46,7 @@ module Adstack
 
     def download_format=(symbol)
       symbols = [:csvforexcel, :csv, :tsv, :xml, :gzipped_csv, :gzipped_xml]
-      if symbols.include?(params[:download_format])
+      if symbols.include?(symbol)
         @download_format = symbol
       else
         puts "Invalid download_format: #{symbol}"
@@ -55,18 +60,18 @@ module Adstack
         :campaign_negative_keywords_performance_report, :campaign_negative_placements_performance_report,
         :ad_extensions_performance_report, :destination_url_report, :creative_conversion_report,
         :call_metrics_call_details_report, :criteria_performance_report]
-      if symbols.include?(params[:report_type])
+      if symbols.include?(symbol)
         @report_type = symbol
       else
         puts "Invalid report_type: #{symbol}"
       end
     end
 
-    def date_range_type(symbol)
+    def date_range_type=(symbol)
       symbols = [:today, :yesterday, :last_7_days, :last_week, :last_business_week,
         :this_month, :last_month, :all_time, :custom_date, :last_14_days, :last_30_days,
         :this_week_sun_today, :this_week_mon_today, :last_week_sun_sat]
-      if symbols.include?(params[:date_range_type])
+      if symbols.include?(symbol)
         @date_range_type = symbol
       else
         puts "Invalid date_range_type: #{symbol}"
@@ -87,6 +92,7 @@ module Adstack
     end
 
     def perform_find
+      puts definition
       self.execute(:download_report, definition)
     end
 
