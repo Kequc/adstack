@@ -5,7 +5,8 @@ class Hash
     values.each{|h| h.except_blank! if h.is_a?(Hash)}
     # Remove empty inside array
     values.select{|v| v.is_a?(Array)}.flatten.each{|h| h.except_blank! if h.is_a?(Hash)}
-    delete_if { |k, v| v.blank? and !v.is_a?(Boolean) }
+    # Booleans are allowed
+    delete_if { |k, v| v.blank? and not !!v == v }
     self
   end
 
