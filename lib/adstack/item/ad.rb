@@ -8,6 +8,7 @@ module Adstack
     field :id,                :f, :ro, :s,  e: :ad
     field :url,               :f,  :s, :p,  e: :ad
     field :display_url,       :f,  :s, :p,  e: :ad
+    field :approval_status,   :f, :ro, :s,  e: :ad
     field :disapproval_reasons,   :ro, :s,  e: :ad
 
     service_api :ad_group_ad, r: :ad
