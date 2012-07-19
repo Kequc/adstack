@@ -12,8 +12,6 @@ module Adstack
     def writeable_attributes(list=nil)
       result = super(list)
       result[:ad_extension].merge!(source: 'ADWORDS_FRONTEND')
-      # Ad extension service doesn't support province_code in address
-      result[:ad_extension][:address][:province_name] ||= result[:ad_extension][:address].delete(:province_code) rescue nil
       result
     end
 
