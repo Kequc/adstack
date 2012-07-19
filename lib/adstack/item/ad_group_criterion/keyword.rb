@@ -74,7 +74,9 @@ module Adstack
     end
 
     def writeable_attributes(list=nil)
-      super(list).merge(xsi_type: self.xsi_type)
+      result = super(list)
+      result.delete(:negative)
+      result.merge(xsi_type: self.xsi_type)
     end
 
   end
