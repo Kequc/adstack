@@ -75,7 +75,9 @@ module Adstack
 
     def writeable_attributes(list=nil)
       result = super(list)
+      # TODO: Why in gods name is this appearing in both places
       result[:criterion].delete(:negative)
+      result.delete(:negative)
       result.merge(xsi_type: self.xsi_type)
     end
 
