@@ -3,7 +3,9 @@ module Adstack
 
     service_api :budget_order
 
-    required :billing_account_id
+    def initialize(params={})
+      super({billing_account_id: Config.get(:billing_account_id)}.merge(params))
+    end
 
   end
 end

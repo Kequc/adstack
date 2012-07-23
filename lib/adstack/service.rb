@@ -15,13 +15,13 @@ module Adstack
       def item_kinds; @item_kinds ||= []; end
 
       def find(amount=:all, params={})
-        params.symbolize_all_keys!
+        srv = new(params)
 
         Array.wrap(@required_search_params).each do |param|
-          raise ArgumentError, "Missing parameter #{param}" unless params[param]
+          raise ArgumentError, "Missing parameter #{param}" unless srv.attributes[param]
         end
 
-        response = new(params).perform_find
+        response = srv.perform_find
 
         return response.first if amount == :first
         return response.sample if amount == :sample

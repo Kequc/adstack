@@ -11,5 +11,9 @@ module Adstack
 
     parent :account
 
+    def initialize(params={})
+      super({billing_account_id: Config.get(:billing_account_id)}.merge(params))
+    end
+
   end
 end
