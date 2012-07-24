@@ -69,11 +69,22 @@ module Adstack
     end
 
     def string_timezone(time)
-      time.strftime('%Y%m%d %H%M%S America/Los_Angeles') rescue nil
+      tz = "America/Los_Angeles"
+      time.in_time_zone(tz).strftime("%Y%m%d %H%M%S #{tz}") rescue nil
     end
 
     def string_date(date)
       date.strftime('%Y%m%d') rescue nil
+    end
+
+    def parse_timezone(string)
+      string = string.split(" ")
+      tz = string.pop
+      Time.parse(string.join(" ")).in_time_zone(tz).utc
+    end
+
+    def parse_date(string)
+      Date.parse(string)
     end
 
     def find_in(symbols, query)

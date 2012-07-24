@@ -12,7 +12,14 @@ module Adstack
     parent :account
 
     def initialize(params={})
-      super({billing_account_id: Config.get(:billing_account_id)}.merge(params))
+      params.symbolize_keys!
+      params[:billing_account_id] ||= Config.get(:billing_account_id)
+      params[:start_date_time] ||= Time.now+60
+      super(params)
+    end
+
+    def end_immediately
+      self.update_attributes(end_date_time: Time.now+30) if self.end_date_time > Time.now+30
     end
 
   end

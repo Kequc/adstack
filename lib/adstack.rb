@@ -1,5 +1,6 @@
 require 'adwords_api'
 require 'active_model'
+require 'active_support/time'
 require 'yaml'
 require 'erb'
 

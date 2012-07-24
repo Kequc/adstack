@@ -15,12 +15,12 @@ module Adstack
         params[key] = params.delete(value) if params.keys.include?(value)
       end
       self.class.datetimes.each_pair do |key, value|
-        next unless params[key].present?
+        next unless params[key].present? and params[key].is_a?(String)
         case value
         when :timezone
-          params[key] = Time.parse(params[key])
+          params[key] = Toolkit.parse_timezone(params[key])
         when :date
-          params[key] = Date.parse(params[key])
+          params[key] = Toolkit.parse_date(params[key])
         end
       end
       set_attributes(params)
