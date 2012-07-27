@@ -14,7 +14,7 @@ module Adstack
       # Find currently active budget_order
       if amount == :current
         budget_orders.each do |budget_order|
-          if Time.now.utc >= budget_order.start_date_time and Time.now.utc <= budget_order.end_date_time
+          if budget_order.is_current?
             return budget_order
           end
         end

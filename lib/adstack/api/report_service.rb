@@ -54,7 +54,7 @@ module Adstack
     end
 
     def report_type=(symbol)
-      symbols = [:keywords_performance_report, :ad_performance_report, :url_performance_report,
+      symbols = [:click_performance_report, :keywords_performance_report, :ad_performance_report, :url_performance_report,
         :adgroup_performance_report, :campaign_performance_report, :account_performance_report, :geo_performance_report,
         :search_query_performance_report, :managed_placements_performance_report, :automatic_placements_performance_report,
         :campaign_negative_keywords_performance_report, :campaign_negative_placements_performance_report,

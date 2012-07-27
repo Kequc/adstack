@@ -342,6 +342,14 @@ module Adstack
 
     end
 
+    def customer_object
+      @customer_object ||= self.customer_id.present? ? Customer.find(:first, customer_id: self.customer_id) : nil
+    end
+
+    def date_time_zone
+      self.customer_object ? self.customer_object.date_time_zone : nil
+    end
+
     def valid_for_adwords?
       if self.operator == 'REMOVE'
         self.get_primary.present?
@@ -493,7 +501,7 @@ module Adstack
         if (value.is_a?(Date) or value.is_a?(Time)) and for_output and convert = self.class.datetimes[symbol]
           case convert
           when :timezone
-            value = Toolkit.string_timezone(value)
+            value = Toolkit.string_timezone(value, self.date_time_zone)
           when :date
             value = Toolkit.string_date(value)
           end

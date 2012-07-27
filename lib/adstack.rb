@@ -22,7 +22,6 @@ require 'adstack/api/location_id_service'
 require 'adstack/api/report_service'
 
 require 'adstack/service'
-require 'adstack/service/account_service'
 require 'adstack/service/customer_service'
 require 'adstack/service/campaign_service'
 require 'adstack/service/campaign_criterion_service'
@@ -33,7 +32,6 @@ require 'adstack/service/ad_group_criterion_service'
 require 'adstack/service/ad_service'
 
 require 'adstack/item'
-require 'adstack/item/account'
 require 'adstack/item/customer'
 require 'adstack/item/campaign'
 require 'adstack/item/campaign_criterion'
@@ -54,6 +52,6 @@ HTTPI.adapter = :curb
 HTTPI.log = false # Supress HTTPI output
 
 module Adstack
-  API_VERSION = :v201109_1
+  API_VERSION = :v201206
   MCC = true
 end

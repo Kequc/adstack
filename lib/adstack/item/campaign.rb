@@ -20,7 +20,7 @@ module Adstack
 
     cannot_delete :set_status
 
-    parent :account
+    parent :customer
 
     def child_params
       super(campaign_id: self.id)
