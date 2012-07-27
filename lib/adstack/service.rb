@@ -91,9 +91,10 @@ module Adstack
         params.merge!(key => Toolkit.enu(self.kind))
         filterable |= [key]
       end
-      result = Toolkit.predicates(filterable, params)
-      puts "Predicates:"
-      puts result.inspect
+      if result = Toolkit.predicates(filterable, params)
+        puts "Predicates:"
+        puts result.inspect
+      end
       result
     end
 

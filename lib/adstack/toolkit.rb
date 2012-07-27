@@ -4,7 +4,7 @@ module Adstack
     extend self
 
     def operation(operator, operand)
-      operation = {
+      {
         :operator => operator,
         :operand => operand
       }
@@ -18,7 +18,9 @@ module Adstack
           { field: Toolkit.adw(symbol), operator: 'IN', values: values }
         end
       end
-      result.compact
+      result.compact!
+      return nil if result.empty?
+      result
     end
 
     def selector(symbols, order_by=nil, start_index=nil, number_results=nil)
