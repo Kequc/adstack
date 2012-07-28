@@ -13,7 +13,7 @@ module Adstack
     field :campaign_stats,    :ro
     field :ad_serving_optimization_status,  :s, w: %w{OPTIMIZE ROTATE UNAVAILABLE}
     field :frequency_cap
-    field :settings,          :s, :p
+    field :settings,          :ro, :s, :p
     field :network_setting
 
     service_api :campaign
@@ -46,6 +46,22 @@ module Adstack
     def rollback
       puts "ROLLING BACK CAMPAIGN: \"#{self.name}\""
       self.delete
+    end
+
+    def writeable_attributes(symbols=nil)
+      result = super
+      return result if self.persisted?
+      result.merge!(settings: {
+        {
+          :xsi_type => 'TargetRestrictSetting',
+          :use_ad_group => false
+        },
+        {
+          :xsi_type => 'KeywordMatchSetting',
+          :opt_in => true
+        }
+      })
+      result
     end
 
   end
