@@ -51,7 +51,7 @@ module Adstack
     def writeable_attributes(symbols=nil)
       result = super
       return result if self.persisted?
-      result.merge!(settings: {
+      result.merge!(settings: [
         {
           :xsi_type => 'TargetRestrictSetting',
           :use_ad_group => false
@@ -60,7 +60,7 @@ module Adstack
           :xsi_type => 'KeywordMatchSetting',
           :opt_in => true
         }
-      })
+      ])
       result
     end
 
