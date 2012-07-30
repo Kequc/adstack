@@ -14,7 +14,7 @@ module Adstack
     field :ad_serving_optimization_status,  :s, w: %w{OPTIMIZE ROTATE UNAVAILABLE}
     field :frequency_cap
     field :settings,          :ro, :s, :p
-    field :network_setting
+    field :network_setting,                     h: NetworkSetting
 
     service_api :campaign
 
@@ -51,7 +51,7 @@ module Adstack
     def writeable_attributes(symbols=nil)
       result = super
       return result if self.persisted?
-      result.merge!(settings: {
+      result.merge!(settings: [
         {
           :xsi_type => 'TargetRestrictSetting',
           :use_ad_group => false
@@ -60,7 +60,7 @@ module Adstack
           :xsi_type => 'KeywordMatchSetting',
           :opt_in => true
         }
-      })
+      ])
       result
     end
 

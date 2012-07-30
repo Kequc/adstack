@@ -9,5 +9,13 @@ module Adstack
       super(ATTRIBUTES, params.symbolize_all_keys)
     end
 
+    def to_s
+      self.in_units
+    end
+
+    def in_units
+      Toolkit.largify(self.micro_amount)
+    end
+
   end
 end

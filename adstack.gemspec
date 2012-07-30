@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Nathan Lunde-Berry"]
-  s.date = "2012-07-27"
+  s.date = "2012-07-30"
   s.description = "Attempts to lower the amount of complex API work one would have to do when interacting with Google's Adwords API."
   s.email = "nathan.lundeberry@gmail.com"
   s.extra_rdoc_files = [
@@ -31,13 +31,16 @@ Gem::Specification.new do |s|
     "lib/adstack/api/geo_location_service.rb",
     "lib/adstack/api/location_id_service.rb",
     "lib/adstack/api/report_service.rb",
+    "lib/adstack/api/traffic_estimator_service.rb",
     "lib/adstack/config.rb",
     "lib/adstack/helper.rb",
     "lib/adstack/helper/address.rb",
     "lib/adstack/helper/budget.rb",
     "lib/adstack/helper/geo_location.rb",
     "lib/adstack/helper/geo_point.rb",
+    "lib/adstack/helper/keyword_estimate.rb",
     "lib/adstack/helper/money.rb",
+    "lib/adstack/helper/network_setting.rb",
     "lib/adstack/item.rb",
     "lib/adstack/item/ad.rb",
     "lib/adstack/item/ad/text_ad.rb",
@@ -71,7 +74,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://github.com/kequc/adstack"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.15"
+  s.rubygems_version = "1.8.24"
   s.summary = "Tool for interacting with the Google Adwords API at a decreased level of complication."
 
   if s.respond_to? :specification_version then
