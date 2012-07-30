@@ -17,8 +17,8 @@ module Adstack
       self.class.datetimes.each_pair do |key, value|
         next unless params[key].present? and params[key].is_a?(String)
         case value
-        when :timezone
-          params[key] = Toolkit.parse_timezone(params[key])
+        when :time_zone
+          params[key] = Toolkit.parse_time_zone(params[key])
         when :date
           params[key] = Toolkit.parse_date(params[key])
         end
@@ -500,8 +500,8 @@ module Adstack
         end
         if (value.is_a?(Date) or value.is_a?(Time)) and for_output and convert = self.class.datetimes[symbol]
           case convert
-          when :timezone
-            value = Toolkit.string_timezone(value, self.date_time_zone)
+          when :time_zone
+            value = Toolkit.string_time_zone(value, self.date_time_zone)
           when :date
             value = Toolkit.string_date(value)
           end

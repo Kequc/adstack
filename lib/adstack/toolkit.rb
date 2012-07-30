@@ -70,7 +70,7 @@ module Adstack
       (Toolkit.adw(symbol)+"Service").to_sym
     end
 
-    def string_timezone(time, time_zone="America/Los_Angeles")
+    def string_time_zone(time, time_zone="America/Los_Angeles")
       time.in_time_zone(time_zone).strftime("%Y%m%d %H%M%S #{time_zone}") rescue nil
     end
 
@@ -78,7 +78,7 @@ module Adstack
       date.strftime('%Y%m%d') rescue nil
     end
 
-    def parse_timezone(string)
+    def parse_time_zone(string)
       string = string.split(" ")
       tz = string.pop
       Time.parse(string.join(" ")).in_time_zone(tz).utc
