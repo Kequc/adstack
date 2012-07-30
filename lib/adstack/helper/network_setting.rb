@@ -1,13 +1,13 @@
 module Adstack
   class NetworkSetting < Helper
 
-    ATTRIBUTES = [:google_search, :search_network, :content_network, :content_contextual, :partner_search_network]
+    ATTRIBUTES = [:google_search, :search_network, :content_network, :partner_search_network]
     attr_accessor *ATTRIBUTES
 
     def initialize(params={})
       params.symbolize_all_keys!
       ATTRIBUTES.each do |symbol|
-        params[symbol] ||= params.delete("target_#{symbol}".to_sym)
+        params[symbol] = params.delete("target_#{symbol}".to_sym) if params[symbol].nil?
         # Store as boolean true by default
         params[symbol] = true if params[symbol].nil?
         params[symbol] = !!params[symbol]

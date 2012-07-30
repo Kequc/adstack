@@ -53,10 +53,6 @@ module Adstack
       return result if self.persisted?
       result.merge!(settings: [
         {
-          :xsi_type => 'TargetRestrictSetting',
-          :use_ad_group => false
-        },
-        {
           :xsi_type => 'KeywordMatchSetting',
           :opt_in => true
         }
