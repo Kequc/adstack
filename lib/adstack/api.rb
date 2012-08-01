@@ -125,9 +125,7 @@ module Adstack
 
       # This is needed because AdWords API sometimes doesn't wrap errors properly
       rescue AdsCommon::Errors::ApiException => e
-        e.message.split(",").each do |error|
-          self.add_error(error.strip)
-        end
+        self.add_error(e.message)
         retry if @perform_retry
 
       # Traps exceptions raised by AdWords API

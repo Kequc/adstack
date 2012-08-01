@@ -454,7 +454,7 @@ module Adstack
       return false unless response = self.perform_save
       if response = response.widdle(*Array.wrap(self.class.item_location || [:value, 0]))
         set_attributes(response)
-        true
+        self.persisted?
       else
         false
       end
