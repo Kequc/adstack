@@ -185,8 +185,12 @@ module Adstack
 
       puts error_string
       case error_string
-      when /RateExceededError/, /InternalApiError/
+      when /InternalApiError/
         sleep(5)
+        # Try again
+        @perform_retry = true
+      when /RateExceededError/
+        sleep(15)
         # Try again
         @perform_retry = true
       when /GOOGLE_ACCOUNT_COOKIE_INVALID/, /USER_PERMISSION_DENIED/
