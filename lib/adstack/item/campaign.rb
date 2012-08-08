@@ -9,8 +9,6 @@ module Adstack
     field :end_date,          :f, :s,           t: :date
     field :budget,                              h: Budget
     field :bidding_strategy,  :roc, :p,         d: { xsi_type: 'BudgetOptimizer' }
-    field :conversion_optimizer_eligibility, :ro
-    field :campaign_stats,    :ro
     field :ad_serving_optimization_status,  :s, w: %w{OPTIMIZE ROTATE UNAVAILABLE}
     field :frequency_cap
     field :settings,          :ro, :s, :p
