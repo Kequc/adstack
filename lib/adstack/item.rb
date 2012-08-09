@@ -264,6 +264,16 @@ module Adstack
           # Perform batch operation
           kind_class.new(self.child_params).mutate(operations)
         end
+
+        # Delete method
+        unless self.delete_type
+          define_method("delete_#{method}") do
+            # Get operations for each object
+            operations = self.send(method).map {|a| Toolkit.operation('REMOVE', a.delete_operation)}
+            # Perform batch operation
+            kind_class.new(self.child_params).mutate(operations)
+          end
+        end
       end
 
       # Symbol representation of parent class
@@ -277,25 +287,6 @@ module Adstack
         find_method = find_method.pluralize unless singular
         service_sym ||= symbol
         service_class = self.service_class(service_sym)
-
-        # # Get each kind individually and merge them together
-        # all_method = service_sym.to_s.pluralize
-        # unless self.method_defined?(all_method)
-        #   define_method(all_method) do |params={}|
-        #     params.merge!(self.child_params)
-        #     response = service_class.new(params).perform_get
-        #     to_lookup = []
-        #     response.each do |item|
-        #       to_lookup << Toolkit.sym(item.widdle(*self.class.kind_location))
-        #     end
-        #     result = []
-        #     to_lookup.uniq.each do |kind|
-        #       params[:kind] = kind
-        #       result += service_class.find(:all, params)
-        #     end
-        #     result
-        #   end
-        # end
 
         # Find method
         define_method(find_method) do |params={}|
