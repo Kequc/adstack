@@ -164,7 +164,7 @@ module Adstack
           self.instance_variable_set("@#{param}", klass.instance_variable_get("@#{param}"))
         end
         self.customer_id_free if klass.doesnt_need_customer_id
-        self.service_api(klass.service_sym, r: klass.item_sym, l: klass.item_location)
+        self.service_api(klass.service_sym, r: klass.item_sym)
         klass.fields.each do |field|
           self.initialize_field(field[0], *field[1])
         end
@@ -262,7 +262,12 @@ module Adstack
           # Get operations for each object
           operations.map! {|a| Toolkit.operation(a.operator, a.save_operation)}
           # Perform batch operation
-          kind_class.new(self.child_params).mutate(operations)
+          response = kind_class.new(self.child_params).mutate(operations)
+          if response and response[:value]
+            true
+          else
+            false
+          end
         end
 
         # Delete method
@@ -272,6 +277,7 @@ module Adstack
             operations = self.send(method).map {|a| Toolkit.operation('REMOVE', a.delete_operation)}
             # Perform batch operation
             kind_class.new(self.child_params).mutate(operations)
+            true
           end
         end
       end
@@ -443,7 +449,7 @@ module Adstack
     def save
       return false unless self.valid?
       return false unless response = self.perform_save
-      if response = response.widdle(*Array.wrap(self.class.item_location || [:value, 0]))
+      if response = response.widdle(*Array.wrap([:value, 0]))
         set_attributes(response)
         self.persisted?
       else

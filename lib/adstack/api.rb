@@ -8,7 +8,7 @@ module Adstack
 
     class << self
 
-      attr_reader :service_sym, :item_location, :doesnt_need_customer_id
+      attr_reader :service_sym, :doesnt_need_customer_id
 
       # Store service name
       def service_api(symbol, *params)
@@ -23,9 +23,6 @@ module Adstack
               when :r
                 # Class name different from service name
                 @item_sym = value
-              when :l
-                # Unusual nesting location in response
-                @item_location = value
               end
 
             end

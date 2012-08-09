@@ -63,7 +63,7 @@ module Adstack
     def perform_get
       response = get(self.selector, self.predicates) || {}
       response.symbolize_all_keys!
-      response = response.widdle(*Array.wrap(self.class.item_location || :entries)) || []
+      response = response.widdle(*Array.wrap(:entries)) || []
     end
 
     # Turn response into useful items
