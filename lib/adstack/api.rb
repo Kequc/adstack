@@ -8,7 +8,7 @@ module Adstack
 
     class << self
 
-      attr_reader :service_sym, :item_location, :doesnt_need_customer_id
+      attr_reader :service_sym, :doesnt_need_customer_id
 
       # Store service name
       def service_api(symbol, *params)
@@ -23,9 +23,6 @@ module Adstack
               when :r
                 # Class name different from service name
                 @item_sym = value
-              when :l
-                # Unusual nesting location in response
-                @item_location = value
               end
 
             end
@@ -125,9 +122,7 @@ module Adstack
 
       # This is needed because AdWords API sometimes doesn't wrap errors properly
       rescue AdsCommon::Errors::ApiException => e
-        e.message.split(",").each do |error|
-          self.add_error(error.strip)
-        end
+        self.add_error(e.message)
         retry if @perform_retry
 
       # Traps exceptions raised by AdWords API
@@ -187,8 +182,12 @@ module Adstack
 
       puts error_string
       case error_string
-      when /RateExceededError/, /InternalApiError/
+      when /InternalApiError/
         sleep(5)
+        # Try again
+        @perform_retry = true
+      when /RateExceededError/
+        sleep(15)
         # Try again
         @perform_retry = true
       when /GOOGLE_ACCOUNT_COOKIE_INVALID/, /USER_PERMISSION_DENIED/

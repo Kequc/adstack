@@ -17,8 +17,8 @@ module Adstack
       self.class.datetimes.each_pair do |key, value|
         next unless params[key].present? and params[key].is_a?(String)
         case value
-        when :timezone
-          params[key] = Toolkit.parse_timezone(params[key])
+        when :time_zone
+          params[key] = Toolkit.parse_time_zone(params[key])
         when :date
           params[key] = Toolkit.parse_date(params[key])
         end
@@ -164,7 +164,7 @@ module Adstack
           self.instance_variable_set("@#{param}", klass.instance_variable_get("@#{param}"))
         end
         self.customer_id_free if klass.doesnt_need_customer_id
-        self.service_api(klass.service_sym, r: klass.item_sym, l: klass.item_location)
+        self.service_api(klass.service_sym, r: klass.item_sym)
         klass.fields.each do |field|
           self.initialize_field(field[0], *field[1])
         end
@@ -262,7 +262,23 @@ module Adstack
           # Get operations for each object
           operations.map! {|a| Toolkit.operation(a.operator, a.save_operation)}
           # Perform batch operation
-          kind_class.new(self.child_params).mutate(operations)
+          response = kind_class.new(self.child_params).mutate(operations)
+          if response and response[:value]
+            true
+          else
+            false
+          end
+        end
+
+        # Delete method
+        unless self.delete_type
+          define_method("delete_#{method}") do
+            # Get operations for each object
+            operations = self.send(method).map {|a| Toolkit.operation('REMOVE', a.delete_operation)}
+            # Perform batch operation
+            kind_class.new(self.child_params).mutate(operations)
+            true
+          end
         end
       end
 
@@ -277,25 +293,6 @@ module Adstack
         find_method = find_method.pluralize unless singular
         service_sym ||= symbol
         service_class = self.service_class(service_sym)
-
-        # # Get each kind individually and merge them together
-        # all_method = service_sym.to_s.pluralize
-        # unless self.method_defined?(all_method)
-        #   define_method(all_method) do |params={}|
-        #     params.merge!(self.child_params)
-        #     response = service_class.new(params).perform_get
-        #     to_lookup = []
-        #     response.each do |item|
-        #       to_lookup << Toolkit.sym(item.widdle(*self.class.kind_location))
-        #     end
-        #     result = []
-        #     to_lookup.uniq.each do |kind|
-        #       params[:kind] = kind
-        #       result += service_class.find(:all, params)
-        #     end
-        #     result
-        #   end
-        # end
 
         # Find method
         define_method(find_method) do |params={}|
@@ -452,9 +449,9 @@ module Adstack
     def save
       return false unless self.valid?
       return false unless response = self.perform_save
-      if response = response.widdle(*Array.wrap(self.class.item_location || [:value, 0]))
+      if response = response.widdle(*Array.wrap([:value, 0]))
         set_attributes(response)
-        true
+        self.persisted?
       else
         false
       end
@@ -500,8 +497,8 @@ module Adstack
         end
         if (value.is_a?(Date) or value.is_a?(Time)) and for_output and convert = self.class.datetimes[symbol]
           case convert
-          when :timezone
-            value = Toolkit.string_timezone(value, self.date_time_zone)
+          when :time_zone
+            value = Toolkit.string_time_zone(value, self.date_time_zone)
           when :date
             value = Toolkit.string_date(value)
           end

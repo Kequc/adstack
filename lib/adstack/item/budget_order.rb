@@ -6,8 +6,8 @@ module Adstack
     field :billing_account_id,  :f, :roc, :s
     field :id,                  :f, :s
     field :spending_limit,      :f, :roc, :s, h: Money
-    field :start_date_time,     :f, :roc, :s, t: :timezone
-    field :end_date_time,       :f, :roc, :s, t: :timezone
+    field :start_date_time,     :f, :roc, :s, t: :time_zone
+    field :end_date_time,       :f, :roc, :s, t: :time_zone
 
     service_api :budget_order
 
@@ -44,8 +44,8 @@ module Adstack
       result = super(symbols)
       if self.has_started?
         result.delete(:start_date_time)
-      elsif !result[:start_date_time].present? or result[:start_date_time] < Time.now+60
-        result[:start_date_time] = Time.now+60
+      elsif !result[:start_date_time].present? or self.start_date_time < Time.now+60
+        result[:start_date_time] = Toolkit.string_time_zone(Time.now+60, self.date_time_zone)
       end
       result
     end
