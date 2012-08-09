@@ -262,7 +262,7 @@ module Adstack
           # Get operations for each object
           operations.map! {|a| Toolkit.operation(a.operator, a.save_operation)}
           # Perform batch operation
-          response = kind_class.new(self.child_params).mutate(operations)
+          response = kind_class.new(self.child_params).mutate(operations) unless operations.empty?
           if response and response[:value]
             true
           else
@@ -276,7 +276,7 @@ module Adstack
             # Get operations for each object
             operations = self.send(method).map {|a| Toolkit.operation('REMOVE', a.delete_operation)}
             # Perform batch operation
-            kind_class.new(self.child_params).mutate(operations)
+            kind_class.new(self.child_params).mutate(operations) unless operations.empty?
             true
           end
         end
