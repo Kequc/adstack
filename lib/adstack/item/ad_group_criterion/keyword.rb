@@ -25,7 +25,7 @@ module Adstack
     end
 
     def xsi_type
-      self.is_negative ? "is_negativeAdGroupCriterion" : "BiddableAdGroupCriterion"
+      self.is_negative ? "NegativeAdGroupCriterion" : "BiddableAdGroupCriterion"
     end
 
     def self.params_from_string(str)
