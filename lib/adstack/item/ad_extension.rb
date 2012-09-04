@@ -1,5 +1,7 @@
 module Adstack
   class AdExtension < Item
+    include Adstack::Updateable
+    include Adstack::Deleteable
 
     field :campaign_id,       :f, :r, :s
     field :status,            :f, :s,       w: %w{ACTIVE DELETED}
@@ -11,8 +13,6 @@ module Adstack
     service_api :campaign_ad_extension, r: :ad_extension
 
     parent :campaign
-
-    cannot_update
 
     kind_lookup :ad_extension_type, :ad_extension, :ad_extension_type
 

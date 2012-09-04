@@ -1,5 +1,6 @@
 module Adstack
   class CampaignCriterion < Item
+    include Adstack::Deleteable
 
     field :campaign_id,     :f, :r, :s
     field :is_negative,     :f, :ro, :s
@@ -9,8 +10,6 @@ module Adstack
     service_api :campaign_criterion
 
     parent :campaign
-
-    cannot_update
 
     kind_lookup :criteria_type, :criterion, :criterion_type
 

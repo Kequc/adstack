@@ -1,5 +1,6 @@
 module Adstack
   class Campaign < Item
+    include Adstack::Updateable
 
     field :id,                :f, :ro, :s
     field :name,              :f, :s,           l: 1
@@ -15,8 +16,6 @@ module Adstack
     field :network_setting,                     h: NetworkSetting
 
     service_api :campaign
-
-    cannot_delete :set_status
 
     parent :customer
 

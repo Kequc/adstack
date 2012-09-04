@@ -8,8 +8,6 @@ module Adstack
 
     kind :keyword
 
-    cannot_update
-
     can_batch
 
     def writeable; @writeable ||= [:xsi_type]; end

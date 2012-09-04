@@ -13,8 +13,6 @@ module Adstack
 
     customer_id_free
 
-    cannot_delete
-
     def perform_save
       return false if self.persisted?
       super

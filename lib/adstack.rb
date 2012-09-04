@@ -9,6 +9,10 @@ require 'hash_patches'
 require 'adstack/toolkit'
 require 'adstack/config'
 
+require 'adstack/concerns/fieldset'
+require 'adstack/concerns/updateable'
+require 'adstack/concerns/deleteable'
+
 require 'adstack/helper'
 require 'adstack/helper/address'
 require 'adstack/helper/money'
