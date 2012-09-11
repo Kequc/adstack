@@ -28,7 +28,7 @@ module Adstack
     end
 
     class << self
-      attr_reader :parent_sym, :kind_sym, :kind_predicate, :kind_location
+      attr_accessor :parent_sym, :kind_sym, :kind_shorthand, :kind_predicate, :kind_location
 
       def updateable?
         false
@@ -54,15 +54,17 @@ module Adstack
         klass.fields.each do |field|
           self.initialize_field(field[0], *field[1])
         end
-        @kind_sym = symbol
+        self.kind_sym = symbol
+        self.kind_shorthand = params[:r] unless params[:r].blank?
         self.service_class.item_kinds << symbol
-        self.parent_class.initialize_child_methods(symbol, klass.item_sym, params.include?(:s))
+        options = { service_sym: klass.item_sym, singular: params.include?(:s), shorthand: self.kind_shorthand }
+        self.parent_class.initialize_child_methods(symbol, options)
       end
 
       # Specify how to format kind lookup
       def kind_lookup(kind_predicate, *params)
-        @kind_predicate = kind_predicate
-        @kind_location = params
+        self.kind_predicate = kind_predicate
+        self.kind_location = params
       end
 
       def create(params={})
@@ -83,7 +85,7 @@ module Adstack
               case key
               when :p
                 # Unusual primary key
-                @primary_key = value
+                self.primary_key = value
               end
 
             end
@@ -108,7 +110,8 @@ module Adstack
 
       def initialize_batch_methods(symbol)
         kind_class = Toolkit.classify(symbol)
-        method = symbol.to_s.pluralize
+        shorthand = kind_class.kind_shorthand
+        method = (shorthand.blank? ? symbol : shorthand).to_s.pluralize
 
         # Build method
         define_method("build_#{method}") do |operations=[]|
@@ -152,31 +155,30 @@ module Adstack
 
       # Symbol representation of parent class
       def parent(symbol)
-        @parent_sym = symbol
+        self.parent_sym = symbol
         self.parent_class.initialize_child_methods(self.item_sym)
       end
 
-      def initialize_child_methods(symbol, service_sym=nil, singular=false)
-        find_method = symbol.to_s
-        find_method = find_method.pluralize unless singular
-        service_sym ||= symbol
-        service_class = self.service_class(service_sym)
+      def initialize_child_methods(symbol, options={})
+        method = options[:shorthand] || symbol.to_s
+        options[:service_sym] ||= symbol
+        service_class = self.service_class(options[:service_sym])
 
         # Find method
-        define_method(find_method) do |params={}|
+        define_method(!!options[:singular] ? method : method.pluralize) do |params={}|
           params.merge!(self.child_params)
           params.merge!(kind: symbol) if service_sym != symbol
           service_class.find((singular ? :first : :all), params)
         end
 
         # Build method
-        define_method("build_#{symbol}") do |params={}|
+        define_method("build_#{method}") do |params={}|
           Toolkit.classify(symbol).new(params.merge(self.child_params))
         end
 
         # Create method
-        define_method("create_#{symbol}") do |params={}|
-          result = self.send("build_#{symbol}", params)
+        define_method("create_#{method}") do |params={}|
+          result = self.send("build_#{method}", params)
           result.save
           result
         end
@@ -232,10 +234,6 @@ module Adstack
         # Cannot update -> delete and replace instead
         return false unless self.respond_to?(:delete) and self.delete
       end
-      self.perform_save_mutate
-    end
-
-    def perform_save_mutate
       self.mutate_explicit(self.operator, self.save_operation)
     end
 
