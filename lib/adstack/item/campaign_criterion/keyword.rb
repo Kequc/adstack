@@ -1,6 +1,6 @@
 module Adstack
   class CampaignKeyword < CampaignCriterion
-    include Adstack::Keyword
+    include Keyword
 
     kind :campaign_keyword, r: :keyword
 

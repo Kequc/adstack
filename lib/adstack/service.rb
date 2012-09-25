@@ -12,7 +12,11 @@ module Adstack
 
     class << self
 
-      def item_kinds; @item_kinds ||= []; end
+      def item_kinds; @item_kinds ||= {}; end
+
+      def add_item_kind(symbol, kind_shorthand=nil)
+        self.item_kinds.merge!((kind_shorthand || symbol) => symbol)
+      end
 
       def find(amount=:all, params={})
         srv = new(params)
@@ -36,12 +40,12 @@ module Adstack
       # Create sub class
       def new_item_from(params)
         return nil unless kind = params.widdle(*self.item_class.kind_location)
-        return nil unless Toolkit.find_in(self.item_kinds, kind)
+        return nil unless kind = self.item_kinds[Toolkit.sym(kind)]
         Toolkit.classify(kind).new(params)
       end
 
       def item(params={})
-        if !self.item_kinds.empty?
+        if self.item_kinds.any?
           self.new_item_from(params)
         else
           super(params)
@@ -57,6 +61,10 @@ module Adstack
       else
         self.class.item_class
       end
+    end
+
+    def kind_shorthand
+      self.lookup_class.kind_shorthand
     end
 
     # Find it
@@ -88,7 +96,7 @@ module Adstack
       params.merge!(self.attributes)
       if self.kind
         key = self.class.item_class.kind_predicate
-        params.merge!(key => Toolkit.enu(self.kind))
+        params.merge!(key => Toolkit.enu(self.kind_shorthand || self.kind))
         filterable |= [key]
       end
       if result = Toolkit.predicates(filterable, params)

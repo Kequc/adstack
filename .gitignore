@@ -47,4 +47,7 @@ pkg
 
 # For rubinius:
 #*.rbc
+
+# Test
+test/adstack.yml
 test/my_test_file.rb

@@ -28,7 +28,10 @@ module Adstack
     end
 
     class << self
-      attr_accessor :parent_sym, :kind_sym, :kind_shorthand, :kind_predicate, :kind_location
+      attr_accessor :parent_sym, :kind_shorthand, :kind_predicate, :kind_location
+      attr_writer :kind_sym
+
+      def kind_sym; @kind_sym ||= self.item_sym; end
 
       def updateable?
         false
@@ -55,10 +58,15 @@ module Adstack
           self.initialize_field(field[0], *field[1])
         end
         self.kind_sym = symbol
-        self.kind_shorthand = params[:r] unless params[:r].blank?
-        self.service_class.item_kinds << symbol
-        options = { service_sym: klass.item_sym, singular: params.include?(:s), shorthand: self.kind_shorthand }
-        self.parent_class.initialize_child_methods(symbol, options)
+        if params.last.is_a?(Hash) and params.last[:r].present?
+          self.kind_shorthand = params.last[:r]
+        end
+        self.service_class.add_item_kind(symbol, self.kind_shorthand)
+        self.parent_class.initialize_child_methods(
+          symbol,
+          service_sym: klass.kind_sym,
+          singular: params.include?(:s)
+        )
       end
 
       # Specify how to format kind lookup
@@ -95,12 +103,7 @@ module Adstack
       end
 
       def item_kinds
-        Array.wrap(self.service_class.item_kinds)
-      end
-
-      def service_class(symbol=nil)
-        symbol ||= self.item_sym
-        Toolkit.classify("#{symbol}_service")
+        self.service_class.item_kinds
       end
 
       # Support batch operations
@@ -156,24 +159,31 @@ module Adstack
       # Symbol representation of parent class
       def parent(symbol)
         self.parent_sym = symbol
-        self.parent_class.initialize_child_methods(self.item_sym)
+        self.parent_class.initialize_child_methods(self.kind_sym)
       end
 
       def initialize_child_methods(symbol, options={})
-        method = options[:shorthand] || symbol.to_s
         options[:service_sym] ||= symbol
         service_class = self.service_class(options[:service_sym])
+        item_class = self.item_class(symbol)
+        options[:kind_shorthand] = item_class.kind_shorthand
+        method = (options[:kind_shorthand] || symbol).to_s
 
         # Find method
         define_method(!!options[:singular] ? method : method.pluralize) do |params={}|
           params.merge!(self.child_params)
-          params.merge!(kind: symbol) if service_sym != symbol
-          service_class.find((singular ? :first : :all), params)
+          if options[:kind_shorthand]
+            params.merge!(kind_shorthand: options[:kind_shorthand])
+          end
+          if options[:service_sym] != symbol
+            params.merge!(kind: symbol)
+          end
+          service_class.find((options[:singular] ? :first : :all), params)
         end
 
         # Build method
         define_method("build_#{method}") do |params={}|
-          Toolkit.classify(symbol).new(params.merge(self.child_params))
+          item_class.new(params.merge(self.child_params))
         end
 
         # Create method
@@ -184,9 +194,14 @@ module Adstack
         end
       end
 
-      def item_class
-        if self.kind_sym
-          Toolkit.classify(self.kind_sym)
+      def service_class(symbol=nil)
+        symbol ||= self.item_sym
+        Toolkit.classify("#{symbol}_service")
+      end
+
+      def item_class(symbol=nil)
+        if symbol ||= self.kind_sym
+          Toolkit.classify(symbol)
         else
           super
         end
