@@ -145,7 +145,7 @@ module Adstack
         end
 
         # Delete method
-        unless kind_class.deleteable?
+        if kind_class.deleteable?
           define_method("delete_#{method}") do
             # Get operations for each object
             operations = self.send(method).map {|a| Toolkit.operation('REMOVE', a.delete_operation)}

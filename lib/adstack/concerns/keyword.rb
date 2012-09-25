@@ -60,7 +60,7 @@ module Adstack
       end
 
       def positive_xsi_type
-        "#{Toolkit.adw(self.parent_sym)}Criterion"
+        "Biddable#{Toolkit.adw(self.parent_sym)}Criterion"
       end
       
       def params_from_string(str)

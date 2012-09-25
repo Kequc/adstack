@@ -6,9 +6,5 @@ module Adstack
 
     can_batch
 
-    def self.positive_xsi_type
-      "Biddable#{super}"
-    end
-
   end
 end
