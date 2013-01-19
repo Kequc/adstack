@@ -182,7 +182,7 @@ module Adstack
 
       puts error_string
       case error_string
-      when /InternalApiError/
+      when /InternalApiError/, /CONCURRENT_MODIFICATION/
         sleep(5)
         # Try again
         @perform_retry = true
