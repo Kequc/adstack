@@ -1,5 +1,6 @@
 module Adstack
   class AdGroupCriterion < Item
+    include Adstack::Deleteable
 
     field :ad_group_id,             :f, :r, :s
     field :criterion_use,           :f, :ro, :s, w: %w{BIDDABLE NEGATIVE}
