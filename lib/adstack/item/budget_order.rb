@@ -1,5 +1,6 @@
 module Adstack
   class BudgetOrder < Item
+    include Adstack::Updateable
 
     attr_writer :date_time_zone
 

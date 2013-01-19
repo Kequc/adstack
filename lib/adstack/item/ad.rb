@@ -1,5 +1,6 @@
 module Adstack
   class Ad < Item
+    include Adstack::Deleteable
 
     field :ad_group_id,       :f, :r, :s
     field :status,            :f, :r, :s, d: "ENABLED", w: %w{ENABLED PAUSED DISABLED}

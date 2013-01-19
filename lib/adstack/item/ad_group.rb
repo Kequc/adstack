@@ -1,5 +1,6 @@
 module Adstack
   class AdGroup < Item
+    include Adstack::Updateable
 
     field :id,            :f, :ro, :s
     field :campaign_id,   :f, :r, :s
@@ -9,8 +10,6 @@ module Adstack
     field :stats,         :ro
 
     service_api :ad_group
-
-    cannot_delete :set_status
 
     parent :campaign
 
